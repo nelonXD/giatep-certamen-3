@@ -1,0 +1,551 @@
+[
+  {
+    "id": "encabezado",
+    "title": "Encabezado de la denuncia",
+    "types": [
+      "DIAT",
+      "DIEP"
+    ],
+    "fields": [
+      {
+        "key": "fechaEmision",
+        "label": "Fecha de emisión",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "codigoOrganismo",
+        "label": "Código del caso del organismo administrador",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "folio",
+        "label": "Folio asignado por el organismo administrador",
+        "type": "text",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": "empleador",
+    "title": "A. Identificación del empleador",
+    "types": [
+      "DIAT",
+      "DIEP"
+    ],
+    "fields": [
+      {
+        "key": "empleadorNombre",
+        "label": "Nombre o razón social",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "empleadorRut",
+        "label": "RUT del empleador",
+        "type": "rut",
+        "required": true
+      },
+      {
+        "key": "empleadorDireccion",
+        "label": "Dirección del empleador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "empleadorComuna",
+        "label": "Comuna del empleador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "empleadorTelefono",
+        "label": "Teléfono del empleador",
+        "type": "tel",
+        "required": false
+      },
+      {
+        "key": "actividadEconomica",
+        "label": "Actividad económica",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "trabajadoresHombres",
+        "label": "Número de trabajadores hombres",
+        "type": "number",
+        "required": false
+      },
+      {
+        "key": "trabajadorasMujeres",
+        "label": "Número de trabajadoras mujeres",
+        "type": "number",
+        "required": false
+      },
+      {
+        "key": "propiedad",
+        "label": "Propiedad de la empresa",
+        "type": "select",
+        "required": false,
+        "options": [
+          "Pública",
+          "Privada"
+        ]
+      },
+      {
+        "key": "tipoEmpresa",
+        "label": "Tipo de empresa",
+        "type": "select",
+        "required": false,
+        "options": [
+          "Principal",
+          "Contratista",
+          "Subcontratista",
+          "De servicios transitorios"
+        ]
+      },
+      {
+        "key": "actividadPrincipal",
+        "label": "Actividad económica de la empresa principal",
+        "type": "text",
+        "required": false,
+        "when": {
+          "key": "tipoEmpresa",
+          "values": [
+            "Contratista",
+            "Subcontratista"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trabajador",
+    "title": "B. Identificación del trabajador o trabajadora",
+    "types": [
+      "DIAT",
+      "DIEP"
+    ],
+    "fields": [
+      {
+        "key": "trabajadorNombre",
+        "label": "Nombre completo del trabajador",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "trabajadorRun",
+        "label": "RUN del trabajador",
+        "type": "rut",
+        "required": true
+      },
+      {
+        "key": "trabajadorDireccion",
+        "label": "Dirección del trabajador",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "trabajadorComuna",
+        "label": "Comuna del trabajador",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "trabajadorTelefono",
+        "label": "Teléfono del trabajador",
+        "type": "tel",
+        "required": false
+      },
+      {
+        "key": "sexo",
+        "label": "Sexo",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Hombre",
+          "Mujer"
+        ]
+      },
+      {
+        "key": "fechaNacimiento",
+        "label": "Fecha de nacimiento",
+        "type": "date",
+        "required": true
+      },
+      {
+        "key": "nacionalidad",
+        "label": "Nacionalidad",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "profesion",
+        "label": "Profesión u oficio",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "fechaIngreso",
+        "label": "Mes y año de ingreso a la empresa",
+        "type": "month",
+        "required": false
+      },
+      {
+        "key": "antiguedad",
+        "label": "Antigüedad en la empresa",
+        "type": "number",
+        "required": false
+      },
+      {
+        "key": "antiguedadUnidad",
+        "label": "Unidad de antigüedad",
+        "type": "select",
+        "required": false,
+        "options": [
+          "Días",
+          "Meses",
+          "Años"
+        ]
+      },
+      {
+        "key": "tipoContrato",
+        "label": "Tipo de contrato",
+        "type": "select",
+        "required": false,
+        "options": [
+          "Indefinido",
+          "Plazo fijo",
+          "Por obra o faena",
+          "Temporada"
+        ]
+      },
+      {
+        "key": "tipoIngreso",
+        "label": "Tipo de ingreso",
+        "type": "select",
+        "required": false,
+        "options": [
+          "Remuneración fija",
+          "Remuneración variable",
+          "Honorarios"
+        ]
+      },
+      {
+        "key": "categoriaOcupacional",
+        "label": "Categoría ocupacional",
+        "type": "select",
+        "required": false,
+        "options": [
+          "Empleador",
+          "Trabajador dependiente",
+          "Trabajador independiente",
+          "Familiar no remunerado",
+          "Trabajador voluntario"
+        ]
+      },
+      {
+        "key": "puebloOriginario",
+        "label": "Pueblo originario",
+        "type": "select",
+        "required": false,
+        "options": [
+          "Alacalufe",
+          "Atacameño",
+          "Aimara",
+          "Colla",
+          "Diaguita",
+          "Mapuche",
+          "Quechua",
+          "Rapanui",
+          "Yamana (Yagán)",
+          "Otro",
+          "Ninguno"
+        ]
+      },
+      {
+        "key": "otroPueblo",
+        "label": "Otro pueblo originario",
+        "type": "text",
+        "required": false,
+        "when": {
+          "key": "puebloOriginario",
+          "values": [
+            "Otro"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "accidente",
+    "title": "C. Datos del accidente · DIAT",
+    "types": [
+      "DIAT"
+    ],
+    "fields": [
+      {
+        "key": "horaAccidente",
+        "label": "Hora del accidente",
+        "type": "time",
+        "required": true
+      },
+      {
+        "key": "horaIngreso",
+        "label": "Hora de ingreso al trabajo",
+        "type": "time",
+        "required": false
+      },
+      {
+        "key": "horaSalida",
+        "label": "Hora de salida del trabajo",
+        "type": "time",
+        "required": false
+      },
+      {
+        "key": "accidenteDireccion",
+        "label": "Dirección del accidente",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "accidenteComuna",
+        "label": "Comuna del accidente",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "actividadAccidente",
+        "label": "Actividad al momento o justo antes del accidente",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "lugarAccidente",
+        "label": "Sección, edificio o área del accidente",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "trabajoHabitual",
+        "label": "Trabajo habitual",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "realizabaHabitual",
+        "label": "¿Realizaba su trabajo habitual?",
+        "type": "select",
+        "required": false,
+        "options": [
+          "Sí",
+          "No"
+        ]
+      },
+      {
+        "key": "clasificacionAccidente",
+        "label": "Clasificación del accidente",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Grave",
+          "Fatal",
+          "Otro"
+        ]
+      },
+      {
+        "key": "tipoAccidente",
+        "label": "Tipo de accidente",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Trabajo",
+          "Trayecto"
+        ]
+      },
+      {
+        "key": "tipoTrayecto",
+        "label": "Tipo de trayecto",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Domicilio - Trabajo",
+          "Trabajo - Domicilio",
+          "Entre dos trabajos"
+        ],
+        "when": {
+          "key": "tipoAccidente",
+          "values": [
+            "Trayecto"
+          ]
+        }
+      },
+      {
+        "key": "medioPrueba",
+        "label": "Medio de prueba del trayecto",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Parte de Carabineros",
+          "Declaración",
+          "Testigos",
+          "Otro"
+        ],
+        "when": {
+          "key": "tipoAccidente",
+          "values": [
+            "Trayecto"
+          ]
+        }
+      },
+      {
+        "key": "detallePrueba",
+        "label": "Detalle del medio de prueba",
+        "type": "textarea",
+        "required": true,
+        "when": {
+          "key": "tipoAccidente",
+          "values": [
+            "Trayecto"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "enfermedad",
+    "title": "C. Datos de la enfermedad · DIEP",
+    "types": [
+      "DIEP"
+    ],
+    "fields": [
+      {
+        "key": "duracionSintomas",
+        "label": "Tiempo con molestias o síntomas",
+        "type": "number",
+        "required": true
+      },
+      {
+        "key": "duracionSintomasUnidad",
+        "label": "Unidad del tiempo con síntomas",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Días",
+          "Meses",
+          "Años"
+        ]
+      },
+      {
+        "key": "molestiasPrevias",
+        "label": "¿Había tenido estas molestias anteriormente en el puesto actual?",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Sí",
+          "No"
+        ]
+      },
+      {
+        "key": "parteCuerpo",
+        "label": "Parte del cuerpo afectada",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "actividadSintomas",
+        "label": "Trabajo o actividad al comenzar las molestias",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "puestoSintomas",
+        "label": "Puesto de trabajo al comenzar las molestias",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "companerosSintomas",
+        "label": "¿Hay compañeros con las mismas molestias?",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Sí",
+          "No"
+        ]
+      },
+      {
+        "key": "agentes",
+        "label": "Cosas o agentes del trabajo que podrían causar las molestias",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "key": "tiempoExposicion",
+        "label": "Tiempo de exposición a los agentes",
+        "type": "number",
+        "required": true
+      },
+      {
+        "key": "tiempoExposicionUnidad",
+        "label": "Unidad del tiempo de exposición",
+        "type": "select",
+        "required": true,
+        "options": [
+          "Días",
+          "Meses",
+          "Años"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "denunciante",
+    "title": "D. Identificación del denunciante",
+    "types": [
+      "DIAT",
+      "DIEP"
+    ],
+    "fields": [
+      {
+        "key": "denuncianteNombre",
+        "label": "Nombre completo del denunciante",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "denuncianteRun",
+        "label": "RUN del denunciante",
+        "type": "rut",
+        "required": false
+      },
+      {
+        "key": "denuncianteTelefono",
+        "label": "Teléfono del denunciante",
+        "type": "tel",
+        "required": false
+      },
+      {
+        "key": "denuncianteClasificacion",
+        "label": "Clasificación del denunciante",
+        "type": "select",
+        "required": false,
+        "options": [
+          "Empleador",
+          "Trabajador/a",
+          "Familiar",
+          "Médico tratante",
+          "Empresa usuaria",
+          "Otro"
+        ]
+      },
+      {
+        "key": "firmaNombre",
+        "label": "Nombre de quien firmará el documento",
+        "type": "text",
+        "required": false
+      }
+    ]
+  }
+]

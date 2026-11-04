@@ -1,0 +1,46 @@
+name: Validar y publicar GIATEP
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Pruebas de API, roles y negocio
+        run: dotnet test backend/Giatep.Tests --logger 'trx;LogFileName=backend.trx' --results-directory evidencias
+      - name: Instalar frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Compilar frontend
+        working-directory: frontend
+        run: npm run build
+      - name: Publicar API
+        run: dotnet publish backend/Giatep.Api -c Release -o entrega/api
+      - name: Preparar interfaz y configuración de ejemplo
+        run: |
+          mkdir -p entrega/web
+          cp -r frontend/dist/* entrega/web/
+          cp README.md .env.example entrega/
+      - name: Publicar artefacto solo después de validación
+        uses: actions/upload-artifact@v4
+        with:
+          name: giatep-validado
+          path: entrega/
+      - name: Guardar resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pruebas
+          path: evidencias/*.trx
