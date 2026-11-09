@@ -8,9 +8,17 @@ Sistema de gestión e investigación de accidentes del trabajo y enfermedades pr
 - Node.js 24 y npm.
 - SQL Server disponible y una cuenta con permisos para crear y actualizar la base de datos local.
 
+## Reconocimiento local de evidencias
+
+El motor local activo es PaddleOCR con modelos preentrenados para español. Consulta `backend/ocr/README.md` para instalar Python, dependencias y modelos. Configura `Ocr__Engine=Paddle` en `backend/.env`. Tesseract permanece como alternativa con `Ocr__Engine=Tesseract` y `npm ci` en `backend/ocr`.
+
+En una investigación abierta, entra en Evidencias → Escanear con IA y selecciona una imagen. El reconocimiento empieza automáticamente; revisa el texto antes de guardar el Word. La imagen se procesa temporalmente y no se almacena como evidencia. El documento revisado es el que se conserva. Los adjuntos normales no se escanean automáticamente.
+
+Se admite PNG/JPG de hasta 5 MB y 25 megapíxeles. Paddle usa un hilo, prioridad baja y afinidad a un núcleo en Windows, con una lectura simultánea y un máximo de 45 segundos. Los modelos están instalados localmente: las fotos no se envían a proveedores externos. Firmas, sombras y texto pequeño pueden requerir corrección manual.
+
 ## Configuración local
 
-Desde la carpeta del proyecto, copia `.env.example` como `.env`. Configura la conexión a SQL Server, una clave JWT aleatoria de al menos 32 bytes y las cuatro contraseñas iniciales de al menos 12 caracteres. Guarda estos valores únicamente en tu equipo.
+Desde la carpeta del proyecto, copia `backend/.env.example` como `backend/.env`. Configura la conexión a SQL Server, una clave JWT aleatoria de al menos 32 bytes y las cuatro contraseñas iniciales de al menos 12 caracteres. Guarda estos valores únicamente en tu equipo.
 
 En desarrollo, la API lee este archivo, aplica las migraciones e inicializa los datos necesarios. `Seed__DatosDemostracion=true` permite cargar datos ficticios de demostración. Los usuarios iniciales y sus roles se definen en el inicializador de la API; sus contraseñas se toman de las variables `Seed__*Password`.
 
@@ -51,9 +59,19 @@ Las pruebas de interfaz requieren los servicios en ejecución, la configuración
 
 ## Estructura
 
-- `backend`: API ASP.NET Core, modelo, migraciones de Entity Framework Core y pruebas.
+- `backend`: solución `Giatep.slnx`, configuración local `.env` y plantilla `.env.example`, API ASP.NET Core, modelo, migraciones de Entity Framework Core y pruebas.
 - `frontend`: interfaz React con TypeScript y Vite, y pruebas de interfaz.
 - `shared`: definición compartida de los formularios DIAT y DIEP, utilizada por la API.
 - `.github/workflows`: validación y generación de artefactos.
 
 El repositorio no incluye credenciales, bases de datos, dependencias instaladas, compilaciones, informes académicos ni evidencias locales.
+
+## Archivos de evidencia
+
+Las evidencias de investigaciones y de cumplimiento de planes se guardan en `backend/storage/evidencias`, fuera de las carpetas públicas y de Git. SQL Server conserva ruta relativa, nombre original, tipo, tamaño y SHA-256. Las descargas solo se entregan mediante la API tras validar permisos; la lectura comprueba la integridad del archivo.
+
+En desarrollo, al iniciar la nueva versión se exportan y verifican las evidencias anteriores antes de aplicar la migración que retira el contenido binario de SQL. El traslado se detiene ante diferencias de integridad. Para un despliegue administrado, con la conexión y `Storage__Path` configurados, ejecuta la API con `--migrar-archivos=true` antes de iniciar el servicio. La migración SQL directa se bloquea si existen archivos sin verificación previa.
+
+Los respaldos deben incluir SQL Server y el directorio de almacenamiento del mismo momento. Para volver al esquema anterior, restaura ambos respaldos y la versión de la aplicación correspondiente; la migración no intenta reconstruir archivos desde SQL. `Storage__Path` permite usar otra carpeta privada del servidor. No elimines ni renombres archivos manualmente.
+
+El flujo OCR mantiene las imágenes nuevas como temporales y muestra una vista previa antes de confirmar el Word. La vista previa no crea una evidencia.

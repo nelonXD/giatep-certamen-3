@@ -5,9 +5,9 @@ public sealed class AnalisisService(AccesoService acceso, GiatepDbContext db)
 {
     private Dictionary<Guid, string>? nombres;
     private string NombreCentro(Guid? id, string historico) => id.HasValue ? (nombres ??= db.Establecimientos.AsNoTracking().ToDictionary(e => e.Id, e => e.Nombre)).GetValueOrDefault(id.Value, historico) : historico;
-    public async Task<CasoRegistro[]> Datos(DateOnly? desde, DateOnly? hasta, Guid? establecimientoId)
+    public async Task<CasoRegistro[]> Datos(DateOnly? desde, DateOnly? hasta, Guid? establecimientoId, string? estado = null, string? tipo = null)
     {
-        var consulta = Consultas.Filtrar(acceso.Casos.AsNoTracking(), null, null, null, establecimientoId, desde, hasta);
+        var consulta = Consultas.Filtrar(acceso.Casos.AsNoTracking(), null, estado, tipo, establecimientoId, desde, hasta);
         var datos = (await consulta.Select(c => new CasoRegistro { Id = c.Id, Codigo = c.Codigo, Tipo = c.Tipo, Establecimiento = c.Establecimiento, EstablecimientoId = c.EstablecimientoId, Fecha = c.Fecha, Estado = c.Estado, CerradoEn = c.CerradoEn }).ToArrayAsync()).OrderBy(c => c.Fecha).ToArray();
         // Consultas separadas evitan multiplicar y ordenar filas anchas al cargar las medidas.
         var medidas = await db.Medidas.AsNoTracking().Where(m => m.Activa && consulta.Any(c => c.Id == m.CasoId)).ToArrayAsync();
@@ -16,9 +16,9 @@ public sealed class AnalisisService(AccesoService acceso, GiatepDbContext db)
         nombres ??= await db.Establecimientos.AsNoTracking().ToDictionaryAsync(e => e.Id, e => e.Nombre);
         return datos;
     }
-    public async Task<object> Dashboard(DateOnly? desde, DateOnly? hasta, Guid? establecimientoId)
+    public async Task<object> Dashboard(DateOnly? desde, DateOnly? hasta, Guid? establecimientoId, string? estado = null, string? tipoCaso = null)
     {
-        var datos = await Datos(desde, hasta, establecimientoId); var medidas = datos.SelectMany(c => c.Medidas).ToArray(); var hoy = Consultas.Hoy();
+        var datos = await Datos(desde, hasta, establecimientoId, estado, tipoCaso); var medidas = datos.SelectMany(c => c.Medidas).ToArray(); var hoy = Consultas.Hoy();
         var cerrados = datos.Where(c => c.Estado == EstadoCaso.Cerrado).ToArray();
         var dias = cerrados.Where(c => c.CerradoEn.HasValue).Select(c => Math.Max(0, (c.CerradoEn!.Value.Date - c.Fecha.ToDateTime(TimeOnly.MinValue)).TotalDays)).ToArray();
         var centros = datos.GroupBy(c => c.EstablecimientoId).OrderByDescending(g => g.Count()).Select(g => new { etiqueta = NombreCentro(g.Key, g.First().Establecimiento), valor = g.Count() }).ToArray();
@@ -48,19 +48,27 @@ public sealed class AnalisisService(AccesoService acceso, GiatepDbContext db)
         };
     }
     public static string Estado(EstadoCaso e) => e switch { EstadoCaso.EnInvestigacion => "En investigación", EstadoCaso.EnSeguimiento => "En seguimiento", _ => e.ToString() };
-    public async Task<Reporte> Construir(string tipo, DateOnly? desde, DateOnly? hasta, Guid? establecimientoId)
+    public async Task<Reporte> Construir(string tipo, DateOnly? desde, DateOnly? hasta, Guid? establecimientoId, string? estado = null, string? tipoCaso = null, string? estadoMedida = null)
     {
         if (!new[] { "operativo", "gerencial", "parametrizable" }.Contains(tipo)) throw new System.ComponentModel.DataAnnotations.ValidationException("Reporte desconocido.");
         if (tipo == "parametrizable" && (!desde.HasValue || !hasta.HasValue)) throw new System.ComponentModel.DataAnnotations.ValidationException("El reporte de medidas requiere fecha inicial y final del caso.");
-        var datos = await Datos(desde, hasta, establecimientoId);
+        if (!string.IsNullOrEmpty(estadoMedida) && (tipo != "parametrizable" || !new[] { "Completada", "Vencida", "Pendiente" }.Contains(estadoMedida))) throw new System.ComponentModel.DataAnnotations.ValidationException("Estado de medida inválido.");
+        var datos = await Datos(desde, hasta, establecimientoId, estado, tipoCaso);
         var filtros = $"Fechas de los casos: {desde?.ToString("yyyy-MM-dd") ?? "inicio"} a {hasta?.ToString("yyyy-MM-dd") ?? "hoy"}. Establecimiento: {(establecimientoId.HasValue ? datos.FirstOrDefault()?.Establecimiento ?? "seleccionado (sin datos)" : "todos los autorizados")}.";
+        if (!string.IsNullOrEmpty(estado)) filtros += $" Estado del caso: {estado}.";
+        if (!string.IsNullOrEmpty(tipoCaso)) filtros += $" Tipo de evento: {(tipoCaso == nameof(TipoCaso.Accidente) ? "Accidente" : "Enfermedad profesional")}.";
+        if (!string.IsNullOrEmpty(estadoMedida)) filtros += $" Estado de medida: {estadoMedida}.";
         var titulo = tipo switch { "operativo" => "Detalle operativo de casos", "gerencial" => "Resumen gerencial por establecimiento", _ => "Seguimiento de medidas por período" };
         if (tipo == "gerencial") {
             var filas = datos.GroupBy(c => c.EstablecimientoId).Select(g => new object?[] { NombreCentro(g.Key, g.First().Establecimiento), g.Count(), g.Count(c => c.Estado == EstadoCaso.Cerrado), g.Count(c => c.Estado != EstadoCaso.Cerrado), g.SelectMany(c => c.Medidas).Count(m => !m.Completada && m.Plazo < Consultas.Hoy()) }).OrderBy(f => f[0]).ToList();
             filas.Add(["TOTAL", datos.Length, datos.Count(c => c.Estado == EstadoCaso.Cerrado), datos.Count(c => c.Estado != EstadoCaso.Cerrado), datos.SelectMany(c => c.Medidas).Count(m => !m.Completada && m.Plazo < Consultas.Hoy())]);
             return new(titulo, filtros, ["Establecimiento", "Casos", "Cerrados", "Abiertos", "Medidas vencidas"], filas, datos.Length, true);
         }
-        if (tipo == "parametrizable") return new(titulo, filtros, ["Caso", "Fecha del caso", "Establecimiento", "Medida", "Responsable", "Plazo", "Estado"], datos.SelectMany(c => c.Medidas.Select(m => new object?[] { c.Codigo, c.Fecha, c.Establecimiento, m.Descripcion, m.Responsable, m.Plazo, m.Completada ? "Completada" : m.Plazo < Consultas.Hoy() ? "Vencida" : "Pendiente" })).ToList(), datos.Length, false);
+        if (tipo == "parametrizable") {
+            var filasMedidas = datos.SelectMany(c => c.Medidas.Select(m => new object?[] { c.Codigo, c.Fecha, c.Establecimiento, m.Descripcion, m.Responsable, m.Plazo, m.Completada ? "Completada" : m.Plazo < Consultas.Hoy() ? "Vencida" : "Pendiente" }))
+                .Where(f => string.IsNullOrEmpty(estadoMedida) || string.Equals(f[6]?.ToString(), estadoMedida, StringComparison.Ordinal)).ToList();
+            return new(titulo, filtros, ["Caso", "Fecha del caso", "Establecimiento", "Medida", "Responsable", "Plazo", "Estado"], filasMedidas, filasMedidas.Select(f => f[0]?.ToString()).Distinct().Count(), false);
+        }
         return new(titulo, filtros, ["Caso", "Fecha", "Establecimiento", "Tipo", "Estado", "Medidas"], datos.Select(c => new object?[] { c.Codigo, c.Fecha, c.Establecimiento, c.Tipo == TipoCaso.Accidente ? "Accidente" : "Enfermedad profesional", Estado(c.Estado), c.Medidas.Count }).ToList(), datos.Length, false);
     }
 }

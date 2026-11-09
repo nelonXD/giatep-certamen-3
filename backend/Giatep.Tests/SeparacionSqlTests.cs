@@ -16,7 +16,7 @@ public class SeparacionSqlTests
     public void RespaldaEnsayaEnCopiaYAplicaSoloTrasVerificarLaSeparacion()
     {
         var root = Environment.GetEnvironmentVariable("GIATEP_ROOT")!;
-        var linea = File.ReadLines(Path.Combine(root, ".env")).Single(l => l.StartsWith("ConnectionStrings__Giatep="));
+        var linea = File.ReadLines(Path.Combine(root, "backend", ".env")).Single(l => l.StartsWith("ConnectionStrings__Giatep="));
         var original = new SqlConnectionStringBuilder(linea.Split('=', 2)[1]);
         Assert.Equal("GiatepDB", original.InitialCatalog);
         var master = new SqlConnectionStringBuilder(original.ConnectionString) { InitialCatalog = "master" };

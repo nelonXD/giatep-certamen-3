@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 namespace Giatep.Tests;
-public sealed class GiatepFactory : WebApplicationFactory<Program>
+public class GiatepFactory : WebApplicationFactory<Program>
 {
     private readonly string databaseName = "giatep-tests-" + Guid.NewGuid();
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -23,6 +23,8 @@ public sealed class GiatepFactory : WebApplicationFactory<Program>
         builder.UseSetting("ConnectionStrings:Giatep", "Server=unused;Database=test;Trusted_Connection=True");
         builder.UseSetting("Jwt:Key", "CLAVE_FICTICIA_SOLO_PRUEBAS_2026_MINIMO_32_BYTES");
         builder.ConfigureServices(services => {
+            services.RemoveAll<AlmacenEvidencias>();
+            services.AddSingleton(new AlmacenEvidencias(Path.Combine(Path.GetTempPath(), databaseName)));
             services.RemoveAll<DbContextOptions<GiatepDbContext>>();
             services.RemoveAll<IDbContextOptionsConfiguration<GiatepDbContext>>();
             services.AddDbContext<GiatepDbContext>(o => o.UseInMemoryDatabase(databaseName));
@@ -43,6 +45,16 @@ public class ApiTests(GiatepFactory factory) : IClassFixture<GiatepFactory>
     {
         var client = factory.CreateClient(); var response = await client.PostAsJsonAsync("/api/v1/auth/login", new { cuenta, password = GiatepFactory.Password }); response.EnsureSuccessStatusCode();
         var body = await response.Content.ReadFromJsonAsync<JsonElement>(); client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", body.GetProperty("token").GetString()); return client;
+    }
+    [Fact] public async Task SesionDuraOchoHoras()
+    {
+        using var client = factory.CreateClient();
+        var inicio = DateTime.UtcNow;
+        var response = await client.PostAsJsonAsync("/api/v1/auth/login", new { cuenta = "prevencion", password = GiatepFactory.Password });
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(body.GetProperty("token").GetString());
+        Assert.InRange(token.ValidTo, inicio.AddHours(8).AddSeconds(-2), DateTime.UtcNow.AddHours(8));
     }
     [Fact] public async Task RequiereLogin() => Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().GetAsync("/api/v1/casos")).StatusCode);
     [Fact] public async Task CredencialesIncorrectasNoIngresan() => Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().PostAsJsonAsync("/api/v1/auth/login", new { cuenta = "prevencion", password = "incorrecta" })).StatusCode);

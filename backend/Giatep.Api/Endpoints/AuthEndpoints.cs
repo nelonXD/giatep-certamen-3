@@ -33,7 +33,7 @@ public static class AuthEndpoints
             var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, user.Id.ToString()), new(ClaimTypes.Name, user.Nombre), new(ClaimTypes.Role, user.Rol), new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) };
             claims.Add(new("version", Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(user.PasswordHash)))));
             if (user.EstablecimientoId.HasValue) claims.Add(new("establecimiento", user.EstablecimientoId.ToString()!));
-            var expiry = DateTime.UtcNow.AddMinutes(30);
+            var expiry = DateTime.UtcNow.AddHours(8);
             var token = new JwtSecurityToken("giatep", "giatep-web", claims, expires: expiry, signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!)), SecurityAlgorithms.HmacSha256));
             return Results.Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token), usuario = Publico(user), expira = expiry });
         }).Produces<SesionDTO>().AllowAnonymous().RequireRateLimiting("login").WithTags("Autenticación");

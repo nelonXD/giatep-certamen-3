@@ -8,7 +8,7 @@ public static class Inicializacion
     public static void CargarEntorno(WebApplicationBuilder builder)
     {
         if (!builder.Environment.IsDevelopment()) return;
-        var path = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "../../.env"));
+        var path = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "../.env"));
         if (!File.Exists(path)) return;
         var values = new Dictionary<string, string?>();
         foreach (var line in File.ReadLines(path))
@@ -23,7 +23,7 @@ public static class Inicializacion
     }
     public static void Sembrar(GiatepDbContext db, IConfiguration config)
     {
-        if (db.Establecimientos.Any()) { InvestigacionService.ImportarAntecedentesPrevios(db); if (config.GetValue<bool>("Seed:DatosDemostracion")) DatosDemostracion.Cargar(db); return; }
+        if (db.Establecimientos.Any()) { AsegurarCuentasIniciales(db, config); InvestigacionService.ImportarAntecedentesPrevios(db); if (config.GetValue<bool>("Seed:DatosDemostracion")) DatosDemostracion.Cargar(db); return; }
         var centros = new[] { "Centro de Salud Norte", "Centro de Salud Sur", "Centro de Salud Rural" }
             .Select((nombre, i) => new Establecimiento { Id = Guid.NewGuid(), Nombre = nombre, Direccion = $"Dirección sintética {i + 1}" }).ToArray();
         db.Establecimientos.AddRange(centros);
@@ -64,5 +64,30 @@ public static class Inicializacion
         db.SaveChanges();
         InvestigacionService.ImportarAntecedentesPrevios(db);
         if (config.GetValue<bool>("Seed:DatosDemostracion")) DatosDemostracion.Cargar(db);
+    }
+
+    private static void AsegurarCuentasIniciales(GiatepDbContext db, IConfiguration config)
+    {
+        var centros = db.Establecimientos.OrderBy(e => e.Nombre).Take(2).ToArray();
+        var cuentas = new List<(string Cuenta, string Rol, Guid? Centro, string Clave)>
+        {
+            ("admin", "Administrador", null, "Admin"),
+            ("prevencion", "Prevencion", null, "Prevencion")
+        };
+        if (centros.Length > 0) cuentas.Add(("jefatura", "Jefatura", centros[0].Id, "Jefatura"));
+        if (centros.Length > 1) cuentas.Add(("jefatura.sur", "Jefatura", centros[1].Id, "JefaturaSur"));
+
+        var faltantes = cuentas.Where(c => !db.Usuarios.Any(u => u.Cuenta == c.Cuenta)).ToArray();
+        if (faltantes.Length == 0) return;
+        var hasher = new PasswordHasher<Usuario>();
+        foreach (var cuenta in faltantes)
+        {
+            var password = config[$"Seed:{cuenta.Clave}Password"] ?? throw new InvalidOperationException("Faltan contraseñas de cuentas iniciales en backend/.env. Consulta backend/.env.example.");
+            if (password.Length < 12) throw new InvalidOperationException("La contraseña inicial debe tener al menos 12 caracteres.");
+            var usuario = new Usuario { Id = Guid.NewGuid(), Cuenta = cuenta.Cuenta, Nombre = $"Cuenta demostración {cuenta.Cuenta}", Rol = cuenta.Rol, EstablecimientoId = cuenta.Centro };
+            usuario.PasswordHash = hasher.HashPassword(usuario, password);
+            db.Usuarios.Add(usuario);
+        }
+        db.SaveChanges();
     }
 }

@@ -16,10 +16,12 @@ public static class PlanEndpoints
     public static void MapPlanes(this WebApplication app)
     {
         var group = app.MapGroup("/api/v1/planes").RequireAuthorization("Operacion").WithTags("Planes de acción");
-        group.MapGet("/", (AccesoService acceso, GiatepDbContext db, string? buscar, string? estado, int pagina = 1) => {
+        group.MapGet("/", (AccesoService acceso, GiatepDbContext db, string? buscar, string? estado, int pagina = 1, bool soloMios = false) => {
             if (pagina < 1 || pagina > 100000 || buscar?.Length > 150 || estado is not (null or "" or "PorIniciar" or "EnSeguimiento" or "Cerrado")) throw new ValidationException("Filtros inválidos.");
+            var usuarioId = acceso.UsuarioId;
             var query = from c in acceso.Casos.AsNoTracking()
                         join i in db.Investigaciones.AsNoTracking() on c.Id equals i.CasoId
+                        where !soloMios || db.Medidas.Any(m => m.CasoId == c.Id && m.Activa && m.UsuarioResponsableId == usuarioId)
                         where i.Estado == "Cerrada" || i.Estado == "Historica"
                         where string.IsNullOrEmpty(buscar) || c.Codigo.Contains(buscar) || c.Establecimiento.Contains(buscar)
                         where string.IsNullOrEmpty(estado) || (estado == "PorIniciar" && c.Estado == EstadoCaso.EnInvestigacion) || (estado == "EnSeguimiento" && c.Estado == EstadoCaso.EnSeguimiento) || (estado == "Cerrado" && c.Estado == EstadoCaso.Cerrado)
@@ -38,7 +40,7 @@ public static class PlanEndpoints
                     revisor = db.Usuarios.Where(u => u.Id == m.RevisorId).Select(u => u.Nombre).FirstOrDefault(),
                     hecho = db.MedidasInvestigacion.Where(p => p.Id == m.PropuestaId).Select(p => db.Hechos.Where(h => h.Id == p.HechoId).Select(h => h.Descripcion).FirstOrDefault()).FirstOrDefault() }).ToArray();
             var ids = medidas.Select(m => m.Id).ToArray();
-            var evidencias = db.EvidenciasMedidas.AsNoTracking().Where(e => ids.Contains(e.MedidaId)).Select(e => new { e.Id, e.MedidaId, e.Nombre, e.Fecha, tamano = e.Contenido.Length }).ToArray();
+            var evidencias = db.EvidenciasMedidas.AsNoTracking().Where(e => ids.Contains(e.MedidaId)).Select(e => new { e.Id, e.MedidaId, e.Nombre, e.Fecha, tamano = e.Tamano }).ToArray();
             return Results.Ok(new { caso.Id, caso.Codigo, caso.Establecimiento, caso.Estado, caso.CerradoEn, investigacion = inv, medidas, evidencias });
         });
         group.MapPost("/{casoId:guid}/medidas/{id:guid}/entrega", async (Guid casoId, Guid id, HttpRequest request, AccesoService acceso, GiatepDbContext db) => {
@@ -71,7 +73,7 @@ public static class PlanEndpoints
             acceso.Exigir(casoId);
             var evidencia = db.EvidenciasMedidas.SingleOrDefault(e => e.Id == id && db.Medidas.Any(m => m.Id == e.MedidaId && m.CasoId == casoId && m.Activa)) ?? throw new KeyNotFoundException("Evidencia no encontrada.");
             acceso.Auditar("EvidenciaMedida", id.ToString(), "Descarga", "Descarga autorizada del plan de acción.");
-            return Results.File(evidencia.Contenido, evidencia.Tipo, evidencia.Nombre);
+            return Results.File(db.Archivos.Leer(evidencia), evidencia.Tipo, evidencia.Nombre);
         });
     }
 }

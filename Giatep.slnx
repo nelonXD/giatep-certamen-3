@@ -1,6 +1,0 @@
-<Solution>
-  <Folder Name="/backend/">
-    <Project Path="backend/Giatep.Api/Giatep.Api.csproj" />
-    <Project Path="backend/Giatep.Tests/Giatep.Tests.csproj" />
-  </Folder>
-</Solution>

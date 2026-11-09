@@ -33,7 +33,7 @@ public sealed class InvestigacionService(GiatepDbContext db, AccesoService acces
             hechos = db.Hechos.Where(h => h.InvestigacionId == id).OrderBy(h => h.EsFinal).ThenBy(h => h.Id).ToArray(),
             relaciones = db.RelacionesCausales.Where(r => r.InvestigacionId == id).ToArray(),
             medidas = db.MedidasInvestigacion.Where(m => m.InvestigacionId == id).ToArray(),
-            evidencias = db.Evidencias.Where(e => e.InvestigacionId == id).Select(e => new { e.Id, e.Nombre, e.Tipo, e.Fecha, tamano = e.Contenido.Length }).ToArray(),
+            evidencias = db.Evidencias.Where(e => e.InvestigacionId == id).Select(e => new { e.Id, e.Nombre, e.Tipo, e.Fecha, tamano = e.Tamano }).ToArray(),
             causasPrevias = db.Causas.Where(c => c.CasoId == row.CasoId).Select(c => new { c.Categoria, c.Descripcion }).ToArray(),
             historial = db.Auditorias.Where(a => a.RegistroId == id.ToString()).OrderByDescending(a => a.Fecha).Take(100).Select(a => new { a.Actor, a.Accion, a.Fecha }).ToArray()
         };

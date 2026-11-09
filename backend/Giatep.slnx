@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Giatep.Api/Giatep.Api.csproj" />
+  <Project Path="Giatep.Tests/Giatep.Tests.csproj" />
+</Solution>

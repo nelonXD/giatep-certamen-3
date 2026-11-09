@@ -8,9 +8,12 @@ public static class InvestigacionEndpoints
     {
         app.MapPost("/api/v1/casos/{casoId:guid}/investigaciones", (Guid casoId, InvestigacionService service) => { var row = service.Iniciar(casoId); return Results.Created($"/api/v1/investigaciones/{row.Id}", new { row.Id, row.CasoId }); }).RequireAuthorization("Prevencion").WithTags("Investigaciones");
         var group = app.MapGroup("/api/v1/investigaciones").RequireAuthorization("Operacion").WithTags("Investigaciones");
-        group.MapGet("/", (AccesoService acceso, GiatepDbContext db, Guid? casoId, string? estado, string? buscar, int pagina = 1) => {
+        group.MapGet("/", (AccesoService acceso, GiatepDbContext db, Guid? casoId, string? estado, string? buscar, int pagina = 1, bool soloMias = false) => {
             if (pagina < 1 || pagina > 100000 || buscar?.Length > 150) throw new System.ComponentModel.DataAnnotations.ValidationException("Página o búsqueda inválidas.");
+            var usuarioId = acceso.UsuarioId;
+            var registrosPropios = db.Auditorias.Where(a => a.Entidad == nameof(Investigacion) && a.Accion == "Added" && a.UsuarioId == usuarioId).Select(a => a.RegistroId);
             var query = from i in db.Investigaciones.AsNoTracking() join c in acceso.Casos.AsNoTracking() on i.CasoId equals c.Id
+                where !soloMias || registrosPropios.Contains(i.Id.ToString())
                 where (!casoId.HasValue || i.CasoId == casoId) && (string.IsNullOrEmpty(estado) || i.Estado == estado) && (string.IsNullOrEmpty(buscar) || c.Codigo.Contains(buscar) || c.Establecimiento.Contains(buscar))
                 select new { i.Id, i.CasoId, c.Codigo, c.Establecimiento, i.Estado, i.EsHistorica, i.IniciadaEn, i.CerradaEn, i.PlanIniciadoEn };
             return Results.Ok(new { total = query.Count(), datos = query.OrderByDescending(i => i.IniciadaEn).ThenBy(i => i.Id).Skip((pagina - 1) * 15).Take(15).ToArray() });

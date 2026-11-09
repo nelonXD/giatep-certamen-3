@@ -15,7 +15,7 @@ public class SqlRecoveryTests
     public void BackupYRestauracionConVerificacionDeConteos()
     {
         var root = Environment.GetEnvironmentVariable("GIATEP_ROOT") ?? throw new InvalidOperationException("Falta GIATEP_ROOT.");
-        var line = File.ReadLines(Path.Combine(root, ".env")).Single(l => l.StartsWith("ConnectionStrings__Giatep="));
+        var line = File.ReadLines(Path.Combine(root, "backend", ".env")).Single(l => l.StartsWith("ConnectionStrings__Giatep="));
         var connection = new SqlConnectionStringBuilder(line.Split('=', 2)[1]);
         Assert.Equal("GiatepDB", connection.InitialCatalog);
         connection.InitialCatalog = "master";

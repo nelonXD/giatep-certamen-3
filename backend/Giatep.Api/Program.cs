@@ -20,10 +20,10 @@ Inicializacion.CargarEntorno(builder);
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, context, token) => {
     document.Info.Title = "GIATEP API";
     document.Info.Version = "v1";
-    document.Info.Description = "Gestión preventiva con JWT y roles Administrador, Prevencion y Jefatura. Los errores usan Problem Details. La IA no está implementada.";
+    document.Info.Description = "Gestión preventiva con JWT y roles Administrador, Prevencion y Jefatura. Los errores usan Problem Details. Incluye OCR local de evidencias con modelo preentrenado en español y generación de documentos Word revisados.";
     document.Components ??= new OpenApiComponents();
     document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-    document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme { Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT", Description = "Token de treinta minutos emitido por /api/v1/auth/login." };
+    document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme { Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT", Description = "Token de ocho horas emitido por /api/v1/auth/login." };
     foreach (var item in document.Paths.Values) if (item.Operations is not null) foreach (var operation in item.Operations.Values) {
         operation.Responses ??= new OpenApiResponses();
         foreach (var error in new[] { ("400", "Entrada inválida. Problem Details con title y status."), ("401", "Sesión ausente, inválida o expirada."), ("403", "Permisos insuficientes."), ("404", "Recurso no encontrado dentro del ámbito autorizado."), ("409", "Regla de negocio o integridad incumplida."), ("429", "Límite de solicitudes alcanzado."), ("500", "Error interno sin detalles sensibles.") })
@@ -39,11 +39,13 @@ var conexion = builder.Configuration.GetConnectionString("Giatep");
 if (string.IsNullOrWhiteSpace(conexion))
     throw new InvalidOperationException("Configura ConnectionStrings__Giatep como variable de entorno o en .env para desarrollo local.");
 builder.Services.AddDbContext<GiatepDbContext>(options => options.UseSqlServer(conexion));
+builder.Services.AddSingleton(new AlmacenEvidencias(builder.Configuration["Storage:Path"] ?? Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "../storage/evidencias"))));
 builder.Services.AddScoped<ICasoRepository, CasoSqlRepository>();
 builder.Services.AddScoped<CasoService>();
 builder.Services.AddScoped<InvestigacionService>();
 builder.Services.AddScoped<AccesoService>();
 builder.Services.AddScoped<AnalisisService>();
+builder.Services.AddScoped<IOcrLocalService, OcrLocalService>();
 builder.Services.AddSingleton<IExportador, CsvExportador>();
 builder.Services.AddSingleton<IExportador, ExcelExportador>();
 builder.Services.AddSingleton<IExportador, PdfExportador>();
@@ -74,6 +76,9 @@ builder.Services.AddRateLimiter(options => {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(c => RateLimitPartition.GetFixedWindowLimiter(c.Connection.RemoteIpAddress?.ToString() ?? "local", _ => new() { PermitLimit = 240, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     options.AddFixedWindowLimiter("login", o => { o.PermitLimit = 20; o.Window = TimeSpan.FromMinutes(1); });
     options.AddFixedWindowLimiter("exportacion", o => { o.PermitLimit = 30; o.Window = TimeSpan.FromMinutes(1); });
+    options.AddPolicy("ocr", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonimo",
+        _ => new() { PermitLimit = 6, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     options.OnRejected = (context, token) => new ValueTask(Results.Problem(statusCode: 429, title: "Demasiadas solicitudes. Espera un minuto.").ExecuteAsync(context.HttpContext));
 });
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 6 * 1024 * 1024);
@@ -111,17 +116,19 @@ app.MapGet("/health", async (GiatepDbContext db, CancellationToken token) =>
 if (app.Environment.IsDevelopment()) { app.MapOpenApi().AllowAnonymous(); app.MapScalarApiReference().AllowAnonymous(); }
 app.MapCasos();
 app.MapInvestigaciones();
+app.MapEvidenciaOcr();
 app.MapPlanes();
 app.MapAuth();
 app.MapGestion();
 app.MapRegistrosRut();
 app.MapReportes();
 // Solo para el desarrollo local. En producción las migraciones serán un paso del despliegue.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || args.Contains("--migrar-archivos=true"))
 {
     using var scope = app.Services.CreateScope();
-    await scope.ServiceProvider.GetRequiredService<GiatepDbContext>().Database.MigrateAsync();
-    Inicializacion.Sembrar(scope.ServiceProvider.GetRequiredService<GiatepDbContext>(), app.Configuration);
+    await MigradorArchivos.Migrar(scope.ServiceProvider.GetRequiredService<GiatepDbContext>());
+    if (!args.Contains("--migrar-archivos=true")) Inicializacion.Sembrar(scope.ServiceProvider.GetRequiredService<GiatepDbContext>(), app.Configuration);
 }
+if (args.Contains("--migrar-archivos=true")) return;
 app.Run();
 public partial class Program { }

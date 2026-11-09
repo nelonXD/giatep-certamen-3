@@ -72,18 +72,6 @@
         "required": false
       },
       {
-        "key": "trabajadoresHombres",
-        "label": "Número de trabajadores hombres",
-        "type": "number",
-        "required": false
-      },
-      {
-        "key": "trabajadorasMujeres",
-        "label": "Número de trabajadoras mujeres",
-        "type": "number",
-        "required": false
-      },
-      {
         "key": "propiedad",
         "label": "Propiedad de la empresa",
         "type": "select",

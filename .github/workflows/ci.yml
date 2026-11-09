@@ -17,7 +17,15 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/ocr/package-lock.json
+      - name: Instalar modelo OCR local en español
+        working-directory: backend/ocr
+        run: npm ci
+      - name: Verificar reconocimiento local de imágenes
+        working-directory: backend/ocr
+        run: npm test
       - name: Pruebas de API, roles y negocio
         run: dotnet test backend/Giatep.Tests --logger 'trx;LogFileName=backend.trx' --results-directory evidencias
       - name: Instalar frontend
@@ -32,7 +40,10 @@ jobs:
         run: |
           mkdir -p entrega/web
           cp -r frontend/dist/* entrega/web/
-          cp README.md .env.example entrega/
+          cp README.md entrega/
+          mkdir -p entrega/backend
+          cp backend/.env.example entrega/backend/
+          cp -r backend/ocr entrega/ocr
       - name: Publicar artefacto solo después de validación
         uses: actions/upload-artifact@v4
         with:

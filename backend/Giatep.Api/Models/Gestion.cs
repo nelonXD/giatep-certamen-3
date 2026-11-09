@@ -59,13 +59,17 @@ public sealed class Observacion
     public string Texto { get; set; } = "";
     public DateTimeOffset Fecha { get; set; }
 }
-public sealed class Evidencia
+public sealed class Evidencia : Giatep.Api.Services.IArchivoEvidencia
 {
     public Guid? InvestigacionId { get; set; }
     public Guid Id { get; set; }
     public Guid CasoId { get; set; }
     public string Nombre { get; set; } = "";
     public string Tipo { get; set; } = "";
+    public string Ruta { get; set; } = "";
+    public long Tamano { get; set; }
+    public string Sha256 { get; set; } = "";
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
     public byte[] Contenido { get; set; } = [];
     public Guid UsuarioId { get; set; }
     public DateTimeOffset Fecha { get; set; }

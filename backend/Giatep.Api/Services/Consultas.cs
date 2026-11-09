@@ -8,7 +8,10 @@ public static class Consultas
     {
         if (desde > hasta) throw new ValidationException("La fecha inicial supera la final.");
         if (!string.IsNullOrWhiteSpace(buscar)) { if (buscar.Length > 150) throw new ValidationException("Búsqueda demasiado extensa."); query = query.Where(c => c.Codigo.Contains(buscar) || c.Establecimiento.Contains(buscar) || c.Relato.Contains(buscar)); }
-        if (!string.IsNullOrEmpty(estado)) { if (!Enum.TryParse<EstadoCaso>(estado, out var value) || !Enum.IsDefined(value)) throw new ValidationException("Estado inválido."); query = query.Where(c => c.Estado == value); }
+        if (!string.IsNullOrEmpty(estado)) {
+            if (estado == "Abierto") query = query.Where(c => c.Estado != EstadoCaso.Cerrado);
+            else { if (!Enum.TryParse<EstadoCaso>(estado, out var value) || !Enum.IsDefined(value)) throw new ValidationException("Estado inválido."); query = query.Where(c => c.Estado == value); }
+        }
         if (!string.IsNullOrEmpty(tipo)) { if (!Enum.TryParse<TipoCaso>(tipo, out var value) || !Enum.IsDefined(value)) throw new ValidationException("Tipo inválido."); query = query.Where(c => c.Tipo == value); }
         if (establecimientoId.HasValue) query = query.Where(c => c.EstablecimientoId == establecimientoId);
         if (desde.HasValue) query = query.Where(c => c.Fecha >= desde);

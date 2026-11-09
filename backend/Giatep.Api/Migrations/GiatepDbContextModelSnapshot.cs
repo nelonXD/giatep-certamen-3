@@ -368,12 +368,6 @@ namespace Giatep.Api.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<int?>("TrabajadorasMujeres")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TrabajadoresHombres")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Rut")
@@ -452,10 +446,6 @@ namespace Giatep.Api.Migrations
                     b.Property<Guid>("CasoId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<byte[]>("Contenido")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
                     b.Property<DateTimeOffset>("Fecha")
                         .HasColumnType("datetimeoffset");
 
@@ -466,6 +456,19 @@ namespace Giatep.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(180)
                         .HasColumnType("nvarchar(180)");
+
+                    b.Property<string>("Ruta")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long>("Tamano")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
@@ -481,9 +484,15 @@ namespace Giatep.Api.Migrations
 
                     b.HasIndex("InvestigacionId");
 
+                    b.HasIndex("Ruta")
+                        .IsUnique();
+
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Evidencias", (string)null);
+                    b.ToTable("Evidencias", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Evidencias_Metadatos", "[Tamano] BETWEEN 8 AND 5242880 AND LEN([Ruta]) > 0 AND LEN([Sha256]) = 64");
+                        });
                 });
 
             modelBuilder.Entity("Giatep.Api.Models.EvidenciaMedida", b =>
@@ -491,10 +500,6 @@ namespace Giatep.Api.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<byte[]>("Contenido")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
 
                     b.Property<DateTimeOffset>("Fecha")
                         .HasColumnType("datetimeoffset");
@@ -506,6 +511,19 @@ namespace Giatep.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(180)
                         .HasColumnType("nvarchar(180)");
+
+                    b.Property<string>("Ruta")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long>("Tamano")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
@@ -519,7 +537,13 @@ namespace Giatep.Api.Migrations
 
                     b.HasIndex("MedidaId");
 
-                    b.ToTable("EvidenciasMedidas");
+                    b.HasIndex("Ruta")
+                        .IsUnique();
+
+                    b.ToTable("EvidenciasMedidas", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EvidenciasMedidas_Metadatos", "[Tamano] BETWEEN 8 AND 5242880 AND LEN([Ruta]) > 0 AND LEN([Sha256]) = 64");
+                        });
                 });
 
             modelBuilder.Entity("Giatep.Api.Models.Hecho", b =>

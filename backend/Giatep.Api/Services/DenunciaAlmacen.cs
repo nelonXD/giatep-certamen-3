@@ -31,8 +31,6 @@ public static class DenunciaAlmacen
             "empleadorComuna" => (caso.Empleador, "Comuna"),
             "empleadorTelefono" => (caso.Empleador, "Telefono"),
             "actividadEconomica" => (caso.Empleador, "ActividadEconomica"),
-            "trabajadoresHombres" => (caso.Empleador, "TrabajadoresHombres"),
-            "trabajadorasMujeres" => (caso.Empleador, "TrabajadorasMujeres"),
             "propiedad" => (caso.Empleador, "Propiedad"),
             "tipoEmpresa" => (caso.Empleador, "TipoEmpresa"),
             "actividadPrincipal" => (caso.Empleador, "ActividadPrincipal"),
@@ -80,7 +78,6 @@ public static class DenunciaAlmacen
         var d = dto.Datos;
         string Texto(string key) => d.GetValueOrDefault(key, "");
         string? Opcional(string key) => string.IsNullOrWhiteSpace(Texto(key)) ? null : Texto(key);
-        int? Numero(string key) => int.TryParse(Texto(key), out var n) ? n : null;
         var run = NormalizarRut(Texto("trabajadorRun"));
         var registrado = db.Trabajadores.SingleOrDefault(t => t.Run == run);
         var trabajador = caso.TrabajadorId.HasValue ? db.Trabajadores.Find(caso.TrabajadorId.Value) : registrado;
@@ -96,7 +93,7 @@ public static class DenunciaAlmacen
         var rut = NormalizarRut(Texto("empleadorRut"));
         var empleador = db.Empleadores.SingleOrDefault(e => e.Rut == rut);
         if (empleador is null) { empleador = new Empleador { Id = Guid.NewGuid(), Rut = rut }; db.Empleadores.Add(empleador); }
-        empleador.Nombre = Texto("empleadorNombre"); empleador.Direccion = Texto("empleadorDireccion"); empleador.Comuna = Texto("empleadorComuna"); empleador.Telefono = Opcional("empleadorTelefono"); empleador.ActividadEconomica = Opcional("actividadEconomica"); empleador.TrabajadoresHombres = Numero("trabajadoresHombres"); empleador.TrabajadorasMujeres = Numero("trabajadorasMujeres"); empleador.Propiedad = Opcional("propiedad"); empleador.TipoEmpresa = Opcional("tipoEmpresa"); empleador.ActividadPrincipal = Opcional("actividadPrincipal");
+        empleador.Nombre = Texto("empleadorNombre"); empleador.Direccion = Texto("empleadorDireccion"); empleador.Comuna = Texto("empleadorComuna"); empleador.Telefono = Opcional("empleadorTelefono"); empleador.ActividadEconomica = Opcional("actividadEconomica"); empleador.Propiedad = Opcional("propiedad"); empleador.TipoEmpresa = Opcional("tipoEmpresa"); empleador.ActividadPrincipal = Opcional("actividadPrincipal");
         trabajador.Run = run; trabajador.Nombre = Texto("trabajadorNombre");
         if (Opcional("profesion") is { } cargo) trabajador.Cargo = cargo;
         trabajador.Direccion = Opcional("trabajadorDireccion"); trabajador.Comuna = Opcional("trabajadorComuna"); trabajador.Telefono = Opcional("trabajadorTelefono"); trabajador.Sexo = Opcional("sexo"); trabajador.FechaNacimiento = DateOnly.TryParse(Texto("fechaNacimiento"), out var nacimiento) ? nacimiento : null; trabajador.Nacionalidad = Opcional("nacionalidad"); trabajador.PuebloOriginario = Opcional("puebloOriginario"); trabajador.OtroPueblo = Opcional("otroPueblo");

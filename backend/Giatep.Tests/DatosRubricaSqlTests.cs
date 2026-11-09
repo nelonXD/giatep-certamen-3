@@ -15,7 +15,7 @@ public class DatosRubricaSqlTests
     public void VerificaDatosRubricaCargadosEnSqlServer()
     {
         var root = Environment.GetEnvironmentVariable("GIATEP_ROOT")!;
-        var linea = File.ReadLines(Path.Combine(root, ".env")).Single(l => l.StartsWith("ConnectionStrings__Giatep="));
+        var linea = File.ReadLines(Path.Combine(root, "backend", ".env")).Single(l => l.StartsWith("ConnectionStrings__Giatep="));
         var conexion = new SqlConnectionStringBuilder(linea.Split('=', 2)[1]); Assert.Equal("GiatepDB", conexion.InitialCatalog);
         using var db = new GiatepDbContext(new DbContextOptionsBuilder<GiatepDbContext>().UseSqlServer(conexion.ConnectionString).Options);
         var casos = db.Casos.AsNoTracking().Where(c => c.Codigo.StartsWith(DatosDemostracion.Prefijo)).ToArray();

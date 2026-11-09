@@ -26,10 +26,15 @@ public static class CasoEndpoints
     public static void MapCasos(this WebApplication app)
     {
         var grupo = app.MapGroup("/api/v1/casos").WithTags("Casos").RequireAuthorization("Operacion");
-        grupo.MapGet("/", (AccesoService acceso, GiatepDbContext db, string? buscar, string? estado, string? tipo, Guid? establecimientoId, DateOnly? desde, DateOnly? hasta, string? orden, int pagina = 1, int tamano = 10) =>
+        grupo.MapGet("/", (AccesoService acceso, GiatepDbContext db, string? buscar, string? estado, string? tipo, Guid? establecimientoId, DateOnly? desde, DateOnly? hasta, string? orden, int pagina = 1, int tamano = 10, bool soloMios = false) =>
         {
             if (pagina < 1 || pagina > 100000 || tamano < 1 || tamano > 100) throw new ValidationException("Paginación inválida.");
             var consulta = Consultas.Filtrar(acceso.Casos.AsNoTracking(), buscar, estado, tipo, establecimientoId, desde, hasta);
+            if (soloMios) {
+                var usuarioId = acceso.UsuarioId;
+                var registros = db.Auditorias.Where(a => a.Entidad == nameof(CasoRegistro) && a.Accion == "Added" && a.UsuarioId == usuarioId).Select(a => a.RegistroId);
+                consulta = consulta.Where(c => registros.Contains(c.Id.ToString()));
+            }
             consulta = orden switch { "fechaAsc" => consulta.OrderBy(c => c.Fecha).ThenBy(c => c.Id), "codigo" => consulta.OrderBy(c => c.Codigo), _ => consulta.OrderByDescending(c => c.Fecha).ThenBy(c => c.Id) };
             return Results.Ok(new { total = consulta.Count(), datos = consulta.Skip((pagina - 1) * tamano).Take(tamano).Select(c => new { c.Id, c.Codigo, c.Tipo, c.Establecimiento, c.EstablecimientoId, c.TrabajadorId, c.Fecha, c.Relato, c.Estado, c.CreadoEn, c.CerradoEn, investigacionId = db.Investigaciones.Where(i => i.CasoId == c.Id).Select(i => (Guid?)i.Id).FirstOrDefault() }).ToArray(), pagina, tamano });
         }).Produces<PaginaCasosDTO>();
@@ -77,7 +82,7 @@ public static class CasoEndpoints
         grupo.MapGet("/{id:guid}/investigacion", (Guid id, AccesoService acceso, GiatepDbContext db) =>
         {
             acceso.Exigir(id);
-            return Results.Ok(new { causas = db.Causas.Where(c => c.CasoId == id).ToArray(), observaciones = db.Observaciones.Where(o => o.CasoId == id).OrderByDescending(o => o.Fecha).ToArray(), evidencias = db.Evidencias.Where(e => e.CasoId == id).Select(e => new { e.Id, e.Nombre, e.Tipo, e.Fecha, tamano = e.Contenido.Length }).ToArray(), historial = db.Auditorias.Where(a => a.RegistroId == id.ToString()).OrderByDescending(a => a.Fecha).Take(100).Select(a => new { a.Id, a.Actor, a.Accion, a.Fecha, a.Cambios }).ToArray() });
+            return Results.Ok(new { causas = db.Causas.Where(c => c.CasoId == id).ToArray(), observaciones = db.Observaciones.Where(o => o.CasoId == id).OrderByDescending(o => o.Fecha).ToArray(), evidencias = db.Evidencias.Where(e => e.CasoId == id).Select(e => new { e.Id, e.Nombre, e.Tipo, e.Fecha, tamano = e.Tamano }).ToArray(), historial = db.Auditorias.Where(a => a.RegistroId == id.ToString()).OrderByDescending(a => a.Fecha).Take(100).Select(a => new { a.Id, a.Actor, a.Accion, a.Fecha, a.Cambios }).ToArray() });
         });
         grupo.MapPost("/{id:guid}/causas", (Guid id, AccesoService acceso) => { acceso.Exigir(id); return Results.Problem(statusCode: 409, title: "Registra hechos y relaciones en el árbol de la investigación."); }).RequireAuthorization("Prevencion");
         grupo.MapPost("/{id:guid}/observaciones", (Guid id, TextoDTO dto, AccesoService acceso, GiatepDbContext db) =>
@@ -97,7 +102,7 @@ public static class CasoEndpoints
         }).RequireAuthorization("Prevencion").DisableAntiforgery();
         grupo.MapGet("/{id:guid}/evidencias/{evidenciaId:guid}", (Guid id, Guid evidenciaId, AccesoService acceso, GiatepDbContext db) =>
         {
-            acceso.Exigir(id); var evidencia = db.Evidencias.SingleOrDefault(e => e.Id == evidenciaId && e.CasoId == id) ?? throw new KeyNotFoundException("Evidencia no encontrada."); acceso.Auditar("Evidencia", evidencia.Id.ToString(), "Descarga", "Descarga autorizada del expediente."); return Results.File(evidencia.Contenido, evidencia.Tipo, evidencia.Nombre);
+            acceso.Exigir(id); var evidencia = db.Evidencias.SingleOrDefault(e => e.Id == evidenciaId && e.CasoId == id) ?? throw new KeyNotFoundException("Evidencia no encontrada."); acceso.Auditar("Evidencia", evidencia.Id.ToString(), "Descarga", "Descarga autorizada del expediente."); return Results.File(db.Archivos.Leer(evidencia), evidencia.Tipo, evidencia.Nombre);
         });
     }
 }

@@ -38,7 +38,7 @@ public static class RegistroRutEndpoints
             var id = Rut(rut); var e = db.Empleadores.AsNoTracking().SingleOrDefault(e => e.Rut == id);
             if (e is null) throw new KeyNotFoundException("Empleador no registrado.");
             return (IResult)Results.Ok(new RegistroRutDTO(e.Id, null, true, new() {
-                ["empleadorRut"] = e.Rut, ["empleadorNombre"] = e.Nombre, ["empleadorDireccion"] = e.Direccion, ["empleadorComuna"] = e.Comuna, ["empleadorTelefono"] = e.Telefono ?? "", ["actividadEconomica"] = e.ActividadEconomica ?? "", ["trabajadoresHombres"] = e.TrabajadoresHombres?.ToString() ?? "", ["trabajadorasMujeres"] = e.TrabajadorasMujeres?.ToString() ?? "", ["propiedad"] = e.Propiedad ?? "", ["tipoEmpresa"] = e.TipoEmpresa ?? "", ["actividadPrincipal"] = e.ActividadPrincipal ?? ""
+                ["empleadorRut"] = e.Rut, ["empleadorNombre"] = e.Nombre, ["empleadorDireccion"] = e.Direccion, ["empleadorComuna"] = e.Comuna, ["empleadorTelefono"] = e.Telefono ?? "", ["actividadEconomica"] = e.ActividadEconomica ?? "", ["propiedad"] = e.Propiedad ?? "", ["tipoEmpresa"] = e.TipoEmpresa ?? "", ["actividadPrincipal"] = e.ActividadPrincipal ?? ""
             }));
         }).Produces<RegistroRutDTO>().RequireAuthorization("Prevencion").WithTags("Registro por RUT");
     }

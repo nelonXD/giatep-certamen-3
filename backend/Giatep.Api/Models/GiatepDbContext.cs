@@ -1,3 +1,4 @@
+using Giatep.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
@@ -53,7 +54,7 @@ public sealed class MedidaRegistro
     public string? Revision { get; set; }
 }
 
-public sealed class EvidenciaMedida
+public sealed class EvidenciaMedida : Giatep.Api.Services.IArchivoEvidencia
 {
     public Guid Id { get; set; }
     public Guid MedidaId { get; set; }
@@ -61,11 +62,16 @@ public sealed class EvidenciaMedida
     public DateTimeOffset Fecha { get; set; }
     public string Nombre { get; set; } = "";
     public string Tipo { get; set; } = "";
+    public string Ruta { get; set; } = "";
+    public long Tamano { get; set; }
+    public string Sha256 { get; set; } = "";
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
     public byte[] Contenido { get; set; } = [];
 }
 
-public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, IHttpContextAccessor? accessor = null) : DbContext(options)
+public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, IHttpContextAccessor? accessor = null, AlmacenEvidencias? almacen = null) : DbContext(options)
 {
+    public AlmacenEvidencias Archivos { get; } = almacen ?? new AlmacenEvidencias(Path.Combine(Path.GetTempPath(), $"giatep-pruebas-{Environment.ProcessId}"));
     public DbSet<Empleador> Empleadores => Set<Empleador>();
     public DbSet<Diat> Diats => Set<Diat>();
     public DbSet<Diep> Dieps => Set<Diep>();
@@ -88,6 +94,14 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         ChangeTracker.DetectChanges();
+        var nuevos = ChangeTracker.Entries().Where(e => e.State == EntityState.Added && e.Entity is IArchivoEvidencia).Select(e => (IArchivoEvidencia)e.Entity).ToArray();
+        var creados = new List<IArchivoEvidencia>();
+        try {
+            foreach (var archivo in nuevos) {
+                Archivos.Guardar(archivo, archivo is Evidencia ? "investigaciones" : "planes");
+                creados.Add(archivo);
+            }
+
         var actor = accessor?.HttpContext?.User;
         var logs = ChangeTracker.Entries().Where(e => e.Entity is not Auditoria && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
             .Select(e => new Auditoria {
@@ -98,12 +112,20 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
                     .Select(p => new { campo = p.Metadata.Name, antes = e.State == EntityState.Added ? null : p.OriginalValue, despues = e.State == EntityState.Deleted ? null : p.CurrentValue }))
             }).ToArray();
         Auditorias.AddRange(logs);
-        return base.SaveChanges(acceptAllChangesOnSuccess);
+        var resultado = base.SaveChanges(acceptAllChangesOnSuccess);
+        foreach (var archivo in nuevos) archivo.Contenido = [];
+        return resultado;
+        } catch {
+            foreach (var archivo in creados) { Archivos.Eliminar(archivo.Ruta); archivo.Ruta = ""; }
+            foreach (var log in ChangeTracker.Entries<Auditoria>().Where(e => e.State == EntityState.Added).ToArray()) log.State = EntityState.Detached;
+            throw;
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder model)
     {
         var evidenciaMedida = model.Entity<EvidenciaMedida>();
+        evidenciaMedida.ToTable("EvidenciasMedidas", t => t.HasCheckConstraint("CK_EvidenciasMedidas_Metadatos", "[Tamano] BETWEEN 8 AND 5242880 AND LEN([Ruta]) > 0 AND LEN([Sha256]) = 64"));
         evidenciaMedida.HasKey(e => e.Id);
         evidenciaMedida.Property(e => e.Nombre).HasMaxLength(180);
         evidenciaMedida.Property(e => e.Tipo).HasMaxLength(80);
@@ -171,6 +193,11 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
         model.Entity<Trabajador>().Property(e => e.Nombre).HasMaxLength(120).IsRequired();
         model.Entity<Trabajador>().Property(e => e.Cargo).HasMaxLength(100).IsRequired();
         model.Entity<Trabajador>().HasOne<Establecimiento>().WithMany().HasForeignKey(e => e.EstablecimientoId).OnDelete(DeleteBehavior.Restrict);
+        foreach (var tipoArchivo in new[] { typeof(Evidencia), typeof(EvidenciaMedida) }) {
+            model.Entity(tipoArchivo).Property<string>("Ruta").HasMaxLength(300).IsRequired();
+            model.Entity(tipoArchivo).Property<string>("Sha256").HasMaxLength(64).IsRequired();
+            model.Entity(tipoArchivo).HasIndex("Ruta").IsUnique();
+        }
         var usuarios = model.Entity<Usuario>();
         usuarios.ToTable("Usuarios", t => t.HasCheckConstraint("CK_Usuarios_Rol", "[Rol] IN ('Administrador','Prevencion','Jefatura') AND ([Rol] <> 'Jefatura' OR [EstablecimientoId] IS NOT NULL)"));
         usuarios.HasKey(e => e.Id);
@@ -189,7 +216,7 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
         model.Entity<Observacion>().Property(e => e.Autor).HasMaxLength(120).IsRequired();
         model.Entity<Observacion>().HasOne<CasoRegistro>().WithMany().HasForeignKey(e => e.CasoId).OnDelete(DeleteBehavior.Cascade);
         model.Entity<Observacion>().HasOne<Usuario>().WithMany().HasForeignKey(e => e.UsuarioId).OnDelete(DeleteBehavior.Restrict);
-        model.Entity<Evidencia>().ToTable("Evidencias").HasKey(e => e.Id);
+        model.Entity<Evidencia>().ToTable("Evidencias", t => t.HasCheckConstraint("CK_Evidencias_Metadatos", "[Tamano] BETWEEN 8 AND 5242880 AND LEN([Ruta]) > 0 AND LEN([Sha256]) = 64")).HasKey(e => e.Id);
         model.Entity<Evidencia>().Property(e => e.Nombre).HasMaxLength(180).IsRequired();
         model.Entity<Evidencia>().Property(e => e.Tipo).HasMaxLength(80).IsRequired();
         model.Entity<Evidencia>().HasOne<CasoRegistro>().WithMany().HasForeignKey(e => e.CasoId).OnDelete(DeleteBehavior.Cascade);

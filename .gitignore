@@ -31,3 +31,15 @@ entrega/
 *.pfx
 *.pem
 *.key
+
+# Vista local de captura de diseño; no se publica con la aplicación.
+/frontend/figma-preview.html
+
+# Entorno local de comparación de OCR.
+**/.venv-paddle/
+
+**/.paddle-models/
+
+**/.model-cache/
+
+/backend/storage/

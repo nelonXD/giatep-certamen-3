@@ -1,0 +1,13 @@
+{
+  "name": "giatep-ocr-local",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@tesseract.js-data/spa": "^1.0.0",
+    "image-size": "^2.0.2",
+    "tesseract.js": "^6.0.1"
+  }
+}

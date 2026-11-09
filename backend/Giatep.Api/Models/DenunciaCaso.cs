@@ -9,8 +9,6 @@ public sealed class Empleador
     public string Comuna { get; set; } = "";
     public string? Telefono { get; set; }
     public string? ActividadEconomica { get; set; }
-    public int? TrabajadoresHombres { get; set; }
-    public int? TrabajadorasMujeres { get; set; }
     public string? Propiedad { get; set; }
     public string? TipoEmpresa { get; set; }
     public string? ActividadPrincipal { get; set; }
