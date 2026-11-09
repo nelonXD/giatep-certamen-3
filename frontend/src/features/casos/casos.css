@@ -1,0 +1,533 @@
+/* ==========================================================================
+   GIATEP - GESTIÓN DE CASOS Y EXPEDIENTES SST
+   Stitch Clinical Safety & Risk Governance Design System
+   ========================================================================== */
+
+.casos-workspace {
+  --casos-navy-950: #071728;
+  --casos-navy-900: #0f2942;
+  --casos-navy-800: #163656;
+  --casos-primary: #006398;
+  --casos-primary-hover: #004d77;
+  --casos-cyan: #0284c7;
+  --casos-cyan-light: #e0f2fe;
+  --casos-emerald: #059669;
+  --casos-emerald-light: #ecfdf5;
+  --casos-amber: #d97706;
+  --casos-amber-light: #fffbeb;
+  --casos-rose: #dc2626;
+  --casos-rose-light: #fef2f2;
+  
+  --casos-bg: #f8fafc;
+  --casos-surface: #ffffff;
+  --casos-border: #e2e8f0;
+  --casos-border-subtle: #f1f5f9;
+  --casos-text-strong: #0f172a;
+  --casos-text-body: #334155;
+  --casos-text-muted: #475569;
+  --casos-text-subtle: #475569;
+  
+  --casos-radius-sm: 8px;
+  --casos-radius-md: 12px;
+  --casos-radius-lg: 16px;
+  --casos-radius-pill: 9999px;
+  
+  --casos-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --casos-shadow-md: 0 4px 12px -2px rgba(15, 41, 66, 0.07), 0 2px 6px -1px rgba(15, 41, 66, 0.04);
+  --casos-shadow-lg: 0 10px 25px -4px rgba(15, 41, 66, 0.09), 0 4px 10px -2px rgba(15, 41, 66, 0.04);
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  animation: casosFadeIn 0.3s ease-out;
+}
+
+@keyframes casosFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   1. CABECERA & ACCIONES PRINCIPALES
+   ========================================================================== */
+.casos-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 8px 0 16px;
+  border-bottom: 1px solid var(--casos-border);
+}
+
+.casos-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.casos-badge-institutional {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--casos-cyan-light);
+  color: var(--casos-primary);
+  border: 1px solid #bae6fd;
+  border-radius: var(--casos-radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.casos-badge-code {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: #f1f5f9;
+  color: var(--casos-text-strong);
+  border: 1px solid var(--casos-border);
+  border-radius: var(--casos-radius-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.casos-heading h1 {
+  font-size: clamp(24px, 3.2vw, 32px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--casos-navy-950);
+  margin: 0 0 8px;
+}
+
+.casos-heading p.subtitle {
+  color: var(--casos-text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 720px;
+  margin: 0;
+}
+
+.casos-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.casos-heading-actions > button.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  min-height: 42px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--casos-radius-md);
+  box-shadow: var(--casos-shadow-sm);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.casos-heading-actions > button.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--casos-shadow-md);
+}
+
+/* ==========================================================================
+   2. BANNER DE ALERTA NORMATIVA SUSESO
+   ========================================================================== */
+.casos-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid var(--casos-primary);
+  border-radius: var(--casos-radius-md);
+  box-shadow: var(--casos-shadow-sm);
+}
+
+.casos-alert-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--casos-radius-md);
+  background: var(--casos-cyan-light);
+  color: var(--casos-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.casos-alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.casos-alert-tag {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--casos-primary);
+  margin-bottom: 2px;
+}
+
+.casos-alert-content p {
+  font-size: 13px;
+  color: var(--casos-text-body);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ==========================================================================
+   3. PESTAÑAS DE ESTADO RÁPIDO (STITCH STATUS TABS)
+   ========================================================================== */
+.casos-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px;
+  background: #f1f5f9;
+  border: 1px solid var(--casos-border);
+  border-radius: var(--casos-radius-lg);
+  scrollbar-width: none;
+}
+
+.casos-tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.casos-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--casos-radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--casos-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.casos-tab-btn:hover {
+  color: var(--casos-navy-950);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.casos-tab-btn[aria-pressed='true'] {
+  background: var(--casos-surface);
+  color: var(--casos-navy-950);
+  border-color: #cbd5e1;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  font-weight: 700;
+}
+
+.casos-tab-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--casos-radius-pill);
+  background: #e2e8f0;
+  color: var(--casos-navy-900);
+}
+
+.casos-tab-btn[aria-pressed='true'] .casos-tab-pill {
+  background: var(--casos-cyan-light);
+  color: var(--casos-primary);
+}
+
+/* ==========================================================================
+   4. PANEL DE FILTROS MULTIFACTORIAL (COMMAND DECK)
+   ========================================================================== */
+.casos-filter-deck {
+  background: var(--casos-surface);
+  border: 1px solid var(--casos-border);
+  border-radius: var(--casos-radius-lg);
+  padding: 20px 24px;
+  box-shadow: var(--casos-shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.casos-filter-fields {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.8fr) minmax(140px, 1fr) minmax(140px, 1fr) minmax(180px, 1.3fr) minmax(130px, 0.9fr);
+  gap: 16px;
+  align-items: end;
+}
+
+.casos-filter-fields .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.casos-filter-fields label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--casos-text-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.casos-filter-fields input,
+.casos-filter-fields select {
+  height: 42px;
+  min-height: 42px;
+  padding: 0 12px;
+  font-size: 13px;
+  background: #ffffff;
+  border: 1px solid var(--casos-border);
+  border-radius: var(--casos-radius-md);
+  color: var(--casos-text-strong);
+  box-shadow: var(--casos-shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.casos-filter-fields input:focus,
+.casos-filter-fields select:focus {
+  border-color: var(--casos-cyan);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18);
+  outline: none;
+}
+
+/* ==========================================================================
+   5. TARJETA MAESTRA Y TABLA DE CASOS
+   ========================================================================== */
+.casos-table-card {
+  background: var(--casos-surface);
+  border: 1px solid var(--casos-border);
+  border-radius: var(--casos-radius-lg);
+  box-shadow: var(--casos-shadow-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.casos-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--casos-border);
+  gap: 16px;
+}
+
+.casos-list-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--casos-navy-950);
+  margin: 0;
+}
+
+.casos-counter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #f1f5f9;
+  border: 1px solid var(--casos-border);
+  border-radius: var(--casos-radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--casos-text-body);
+}
+
+.casos-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.casos-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.casos-table thead tr {
+  background: #f8fafc;
+  border-bottom: 1px solid var(--casos-border);
+}
+
+.casos-table th {
+  padding: 12px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--casos-text-subtle);
+  white-space: nowrap;
+}
+
+.casos-table tbody tr {
+  border-bottom: 1px solid var(--casos-border-subtle);
+  transition: background-color 0.15s ease;
+}
+
+.casos-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.casos-table td {
+  padding: 14px 18px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.caso-cell-code {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.caso-code-strong {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--casos-navy-950);
+}
+
+.caso-type-tag {
+  font-size: 11px;
+  color: var(--casos-text-muted);
+}
+
+/* Badges de Estado con Punto */
+.badge-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--casos-radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.badge-dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge-dot.Borrador {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.badge-dot.EnInvestigacion {
+  background: var(--casos-cyan-light);
+  color: var(--casos-primary);
+}
+
+.badge-dot.EnSeguimiento {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.badge-dot.Cerrado {
+  background: var(--casos-emerald-light);
+  color: var(--casos-emerald);
+}
+
+/* Acciones de Fila */
+.caso-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.caso-actions-cell a.row-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--casos-primary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.caso-actions-cell a.row-link:hover {
+  color: var(--casos-cyan);
+  text-decoration: underline;
+}
+
+.caso-actions-cell button.secondary {
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--casos-radius-sm);
+}
+
+/* ==========================================================================
+   6. RESPONSIVIDAD (360px, 768px, 1100px)
+   Garantiza document.documentElement.scrollWidth <= window.innerWidth
+   ========================================================================== */
+@media (max-width: 1100px) {
+  .casos-filter-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .casos-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .casos-heading-actions {
+    width: 100%;
+  }
+  .casos-heading-actions > button.primary {
+    width: 100%;
+    justify-content: center;
+  }
+  .casos-filter-deck {
+    padding: 16px;
+  }
+  .casos-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .casos-filter-fields {
+    grid-template-columns: 1fr;
+  }
+  .casos-alert-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px;
+  }
+}

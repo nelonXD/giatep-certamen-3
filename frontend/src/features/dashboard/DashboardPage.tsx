@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { RefreshCw, ArrowUpRight, CalendarRange, ClipboardList, CircleCheck, Clock3, ListChecks, TriangleAlert, SlidersHorizontal, Building2, X, RotateCcw } from 'lucide-react';
+import { RefreshCw, ArrowUpRight, CalendarRange, ClipboardList, CircleCheck, Clock3, ListChecks, TriangleAlert, SlidersHorizontal, Building2, X, RotateCcw, Activity } from 'lucide-react';
 import { useLoad } from '../../hooks/useLoad';
 import { useAuth } from '../../context/AuthContext';
 import { Field, Select, Loading, Message, today } from '../../components/common/UI';
@@ -28,10 +28,10 @@ function mesesEntre(desde: string, hasta: string) {
 const numero = (n: number) => new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 }).format(n);
 const fechaCorta = (f: string) => new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${f}T12:00:00Z`));
 const principales = [
-  { nombre: 'Casos registrados', icono: ClipboardList, clase: 'total', detalle: 'Eventos dentro del período seleccionado' },
-  { nombre: 'Casos abiertos', icono: Clock3, clase: 'abiertos', detalle: 'Expedientes que aún requieren gestión' },
-  { nombre: 'Medidas cumplidas', icono: ListChecks, clase: 'cumplidas', detalle: 'Acciones verificadas como completadas' },
-  { nombre: 'Medidas vencidas', icono: TriangleAlert, clase: 'vencidas', detalle: 'Acciones pendientes fuera de plazo' }
+  { nombre: 'Casos registrados', icono: ClipboardList, clase: 'total', detalle: 'Eventos dentro del período seleccionado', estadoChip: 'Activos en período' },
+  { nombre: 'Casos abiertos', icono: Clock3, clase: 'abiertos', detalle: 'Expedientes que aún requieren gestión', estadoChip: 'En gestión clínica' },
+  { nombre: 'Medidas cumplidas', icono: ListChecks, clase: 'cumplidas', detalle: 'Acciones verificadas como completadas', estadoChip: 'Validadas CPHS' },
+  { nombre: 'Medidas vencidas', icono: TriangleAlert, clase: 'vencidas', detalle: 'Acciones pendientes fuera de plazo', estadoChip: 'Alerta perentoria' }
 ];
 
 export function DashboardPage() {
@@ -76,49 +76,116 @@ export function DashboardPage() {
     setBorrador(siguiente); setFiltros(siguiente); setRango(meses); limpiarSelecciones();
   }
   return <div className="dash-workspace" aria-busy={loading}>
-    <header className="dash-heading"><div><p className="eyebrow">PANORAMA PREVENTIVO</p><h1>Comprende. Prioriza. Actúa.</h1><p>Selecciona un dato en los gráficos para cruzar y actualizar el panel completo.</p></div>
-      <div className="dash-heading-actions"><a className="secondary" href="#/reportes">Ver reportes<ArrowUpRight size={16} aria-hidden="true"/></a><button className="dash-refresh" disabled={loading} onClick={refresh}><RefreshCw size={16} aria-hidden="true"/>Actualizar</button></div>
+    <header className="dash-heading">
+      <div>
+        <div className="dash-badge-row">
+          <span className="dash-badge-institutional"><Activity size={14} aria-hidden="true"/>SST • Panel Ejecutivo de Gestión</span>
+          <span className="dash-badge-code">Circular SUSESO 3336</span>
+        </div>
+        <h1>Comprende. Prioriza. Actúa.</h1>
+        <p>Monitoreo consolidado de siniestralidad, incidentes en investigación y cumplimiento normativo SUSESO — Red Asistencial.</p>
+      </div>
+      <div className="dash-heading-actions">
+        <a className="secondary" href="#/reportes">Ver reportes<ArrowUpRight size={16} aria-hidden="true"/></a>
+        <button className="dash-refresh" disabled={loading} onClick={refresh}><RefreshCw size={16} aria-hidden="true"/>Actualizar</button>
+      </div>
     </header>
+
     <form className="dash-filters" aria-label="Filtros del dashboard" onSubmit={e => {
       e.preventDefault(); setFiltros(borrador); setRango(null); limpiarSelecciones();
     }}>
-      <div className="dash-filter-top"><span><SlidersHorizontal size={17} aria-hidden="true"/>Período de análisis</span><div className="dash-presets" role="group" aria-label="Períodos rápidos">
-        {[{ meses: 1, texto: 'Este mes' }, { meses: 3, texto: '3 meses' }, { meses: 12, texto: '12 meses' }].map(p => <button type="button" key={p.meses} aria-pressed={rango === p.meses && !cambiado} onClick={() => rapido(p.meses)}>{p.texto}</button>)}
-      </div></div>
-      <div className="dash-filter-fields"><Field label="Desde" type="date" required value={borrador.desde} max={borrador.hasta || today()} onChange={e => setBorrador({ ...borrador, desde: e.target.value })}/>
+      <div className="dash-filter-top">
+        <span><SlidersHorizontal size={17} aria-hidden="true"/>Filtros de Período y Establecimiento</span>
+        <div className="dash-presets" role="group" aria-label="Períodos rápidos">
+          {[{ meses: 1, texto: 'Este mes' }, { meses: 3, texto: '3 meses' }, { meses: 12, texto: '12 meses' }].map(p => <button type="button" key={p.meses} aria-pressed={rango === p.meses && !cambiado} onClick={() => rapido(p.meses)}>{p.texto}</button>)}
+        </div>
+      </div>
+      <div className="dash-filter-fields">
+        <Field label="Desde" type="date" required value={borrador.desde} max={borrador.hasta || today()} onChange={e => setBorrador({ ...borrador, desde: e.target.value })}/>
         <Field label="Hasta" type="date" required value={borrador.hasta} min={borrador.desde} max={today()} onChange={e => setBorrador({ ...borrador, hasta: e.target.value })}/>
         <Select label="Establecimiento" value={borrador.centro} onChange={e => setBorrador({ ...borrador, centro: e.target.value })}><option value="">{user.rol === 'Jefatura' ? 'Mi establecimiento' : 'Todos los establecimientos'}</option>{options.data?.establecimientos.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</Select>
         <button className="primary" type="submit" disabled={!cambiado}>Aplicar filtros</button>
       </div>
       {cambiado && <p className="dash-filter-pending" role="status">Tienes cambios de filtros por aplicar.</p>}
     </form>
-    <div className="dash-context"><span><CalendarRange size={15} aria-hidden="true"/>{fechaCorta(filtros.desde)} — {fechaCorta(filtros.hasta)}</span><span><Building2 size={15} aria-hidden="true"/>{centroNombre}</span>
+
+    <div className="dash-context">
+      <span><CalendarRange size={15} aria-hidden="true"/>{fechaCorta(filtros.desde)} — {fechaCorta(filtros.hasta)}</span>
+      <span><Building2 size={15} aria-hidden="true"/>{centroNombre}</span>
       <span className="dash-updated" role="status">{loading ? 'Actualizando datos…' : data ? `Actualizado ${new Intl.DateTimeFormat('es-CL', { timeStyle: 'short', timeZone: 'America/Santiago' }).format(new Date(data.actualizado))}` : 'Datos no disponibles'}</span>
     </div>
-    {Object.values(selecciones).some(Boolean) && <div className="dash-active-filters" aria-label="Filtros aplicados desde los gráficos" aria-live="polite"><span className="dash-active-label">Explorando</span>{selecciones.mes && <button type="button" onClick={() => seleccionar('mes', selecciones.mes!)}>Mes: {new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${selecciones.mes}-01T12:00:00Z`))}<X size={14}/></button>}{selecciones.tipoCaso && <button type="button" onClick={() => seleccionar('tipoCaso', selecciones.tipoCaso!)}>Tipo: {selecciones.tipoCaso === 'Accidente' ? 'Accidente' : 'Enfermedad profesional'}<X size={14}/></button>}{selecciones.estado && <button type="button" onClick={() => seleccionar('estado', selecciones.estado!)}>Estado: {nombreEstado(selecciones.estado)}<X size={14}/></button>}{selecciones.centroId && <button type="button" onClick={() => seleccionar('centroId', selecciones.centroId!)}>Centro: {options.data?.establecimientos.find(c => c.id === selecciones.centroId)?.nombre || 'Seleccionado'}<X size={14}/></button>}<button type="button" className="dash-clear-filters" onClick={limpiarSelecciones}><RotateCcw size={14}/>Limpiar selecciones</button></div>}
+
+    {Object.values(selecciones).some(Boolean) && <div className="dash-active-filters" aria-label="Filtros aplicados desde los gráficos" aria-live="polite">
+      <span className="dash-active-label">Filtros cruzados activos:</span>
+      {selecciones.mes && <button type="button" onClick={() => seleccionar('mes', selecciones.mes!)}>Mes: {new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${selecciones.mes}-01T12:00:00Z`))}<X size={14}/></button>}
+      {selecciones.tipoCaso && <button type="button" onClick={() => seleccionar('tipoCaso', selecciones.tipoCaso!)}>Tipo: {selecciones.tipoCaso === 'Accidente' ? 'Accidente' : 'Enfermedad profesional'}<X size={14}/></button>}
+      {selecciones.estado && <button type="button" onClick={() => seleccionar('estado', selecciones.estado!)}>Estado: {nombreEstado(selecciones.estado)}<X size={14}/></button>}
+      {selecciones.centroId && <button type="button" onClick={() => seleccionar('centroId', selecciones.centroId!)}>Centro: {options.data?.establecimientos.find(c => c.id === selecciones.centroId)?.nombre || 'Seleccionado'}<X size={14}/></button>}
+      <button type="button" className="dash-clear-filters" onClick={limpiarSelecciones}><RotateCcw size={14}/>Limpiar selecciones</button>
+    </div>}
+
     <Message error={error || options.error}/>
     {loading && !data ? <div className="dash-loading"><Loading/></div> : error ? <section className="dash-empty"><TriangleAlert size={30} aria-hidden="true"/><h2>No pudimos cargar el panorama</h2><p>Los filtros se conservaron. Puedes volver a intentarlo.</p><button className="secondary" onClick={refresh}>Volver a intentar</button></section> : data && <>
       <section className="dash-kpis" aria-label="Indicadores de gestión">{principales.map(p => {
         const k = indicador(p.nombre); if (!k) return null;
         const drilldown: Record<string, string> = p.clase === 'abiertos' ? { estado: 'Abierto' } : p.clase === 'cumplidas' ? { reporte: 'parametrizable', estadoMedida: 'Completada' } : p.clase === 'vencidas' ? { reporte: 'parametrizable', estadoMedida: 'Vencida' } : {};
-        return <article key={p.nombre} className={`dash-kpi dash-kpi-${p.clase}${p.clase === 'vencidas' && k.valor > 0 ? ' attention' : ''}`}>
-          <div className="dash-kpi-label"><span>{k.nombre}</span><p.icono size={19} aria-hidden="true"/></div>
-          <div className="dash-kpi-value"><strong>{!total && k.unidad === '%' ? '—' : numero(k.valor)}</strong><span>{k.unidad}</span></div>
+        const tieneAtencion = p.clase === 'vencidas' && k.valor > 0;
+        return <article key={p.nombre} className={`dash-kpi dash-kpi-${p.clase}${tieneAtencion ? ' attention' : ''}`}>
+          <div className="dash-kpi-label">
+            <span>{k.nombre}</span>
+            <span className="dash-kpi-icon-wrap"><p.icono size={18} aria-hidden="true"/></span>
+          </div>
+          <div className="dash-kpi-value">
+            <strong>{!total && k.unidad === '%' ? '—' : numero(k.valor)}</strong>
+            <span>{k.unidad}</span>
+          </div>
           <p>{!total && k.unidad === '%' ? 'Sin casos para calcular el indicador' : p.detalle}</p>
+          <div className="dash-kpi-substatus">
+            <span className={`dash-chip-substatus ${p.clase}`}>
+              <span className="dash-substatus-dot"/>
+              {tieneAtencion ? 'Requiere atención' : p.estadoChip}
+            </span>
+          </div>
           {total > 0 && k.unidad === '%' && <div className="dash-kpi-progress" aria-hidden="true"><span style={{ width: `${Math.max(0, Math.min(100, k.valor))}%` }}/></div>}
           <details><summary>Cómo se calcula</summary><p>{k.pregunta}</p><p>{k.formula}</p></details>
           <a className="dash-kpi-link" href={enlaceReporte(drilldown)} aria-label={`Ver detalle: ${p.nombre}`}>Ver detalle <ArrowUpRight size={14} aria-hidden="true"/></a>
         </article>;
       })}</section>
+
       {!total ? <section className="dash-empty"><ClipboardList size={32} aria-hidden="true"/><h2>No hay casos en este período</h2><p>Amplía las fechas o selecciona otro establecimiento para consultar su información.</p><button className="secondary" onClick={() => rapido(12)}>Consultar últimos 12 meses</button></section> : <>
-        <div className="dash-primary-charts"><EvolucionMensual key={query.toString()} data={data.meses} mesesDisponibles={mesesDisponibles} seleccionado={selecciones.mes} onSelect={mes => seleccionar('mes', mes)}/><ComposicionEventos data={data.tipos} seleccionado={selecciones.tipoCaso} onSelect={tipoCaso => seleccionar('tipoCaso', tipoCaso)}/></div>
-        <div className="dash-secondary-charts"><FlujoCasos data={data.estados} seleccionado={selecciones.estado} onSelect={estado => seleccionar('estado', estado)}/><CasosCentros data={data.establecimientos} idCentro={nombre => options.data?.establecimientos.find(c => c.nombre === nombre)?.id} seleccionado={selecciones.centroId} onSelect={centroId => seleccionar('centroId', centroId)}/></div>
+        <div className="dash-primary-charts">
+          <EvolucionMensual key={query.toString()} data={data.meses} mesesDisponibles={mesesDisponibles} seleccionado={selecciones.mes} onSelect={mes => seleccionar('mes', mes)}/>
+          <ComposicionEventos data={data.tipos} seleccionado={selecciones.tipoCaso} onSelect={tipoCaso => seleccionar('tipoCaso', tipoCaso)}/>
+        </div>
+        <div className="dash-secondary-charts">
+          <FlujoCasos data={data.estados} seleccionado={selecciones.estado} onSelect={estado => seleccionar('estado', estado)}/>
+          <CasosCentros data={data.establecimientos} idCentro={nombre => options.data?.establecimientos.find(c => c.nombre === nombre)?.id} seleccionado={selecciones.centroId} onSelect={centroId => seleccionar('centroId', centroId)}/>
+        </div>
         <section className="dash-closure" aria-label="Indicadores de cierre">{[{ nombre: 'Casos cerrados', icono: CircleCheck, detalle: 'Proporción de expedientes finalizados' }, { nombre: 'Tiempo de cierre', icono: Clock3, detalle: 'Promedio desde el evento hasta su cierre' }].map(p => {
           const k = indicador(p.nombre); if (!k) return null;
           const sinCierres = p.nombre === 'Tiempo de cierre' && !data.estados.some(e => e.etiqueta === 'Cerrado' && e.valor > 0);
-          return <div className="dash-closure-item" key={p.nombre}><p.icono size={22} aria-hidden="true"/><div><span>{p.nombre}</span><strong>{sinCierres ? '—' : numero(k.valor)}<small>{k.unidad}</small></strong><p>{sinCierres ? 'Aún no hay casos cerrados en el período' : p.detalle}</p><details><summary>Ver fórmula</summary><p>{k.formula}</p></details></div></div>;
+          return <div className="dash-closure-item" key={p.nombre}>
+            <div className="dash-closure-icon-wrap"><p.icono size={22} aria-hidden="true"/></div>
+            <div>
+              <span>{p.nombre}</span>
+              <strong>{sinCierres ? '—' : numero(k.valor)}<small>{k.unidad}</small></strong>
+              <p>{sinCierres ? 'Aún no hay casos cerrados en el período' : p.detalle}</p>
+              <details><summary>Ver fórmula</summary><p>{k.formula}</p></details>
+            </div>
+          </div>;
         })}</section>
-        <aside className={`dash-priority${pendientes > 0 ? ' has-overdue' : ''}`}><span className="dash-priority-icon">{pendientes > 0 ? <TriangleAlert size={24} aria-hidden="true"/> : <ListChecks size={24} aria-hidden="true"/>}</span><div><p className="dash-overline">PARA TU PRÓXIMA REVISIÓN</p><h2>{pendientes > 0 ? `${numero(pendientes)} % de las medidas están fuera de plazo` : 'Revisa la distribución de tus casos'}</h2><p>{data.interpretacion}</p></div><a className="secondary" href={user.rol === 'Administrador' ? '#/reportes' : '#/planes'}>{user.rol === 'Administrador' ? 'Explorar reportes' : 'Revisar planes'}<ArrowUpRight size={16} aria-hidden="true"/></a></aside>
+        <aside className={`dash-priority${pendientes > 0 ? ' has-overdue' : ''}`}>
+          <span className="dash-priority-icon">{pendientes > 0 ? <TriangleAlert size={26} aria-hidden="true"/> : <ListChecks size={26} aria-hidden="true"/>}</span>
+          <div>
+            <p className="dash-overline">PLAN DE ACCIÓN Y MITIGACIÓN PRIORITARIA</p>
+            <h2>{pendientes > 0 ? `${numero(pendientes)} % de las medidas están fuera de plazo` : 'Distribución y seguimiento de casos bajo control'}</h2>
+            <p>{data.interpretacion}</p>
+          </div>
+          <a className="secondary" href={user.rol === 'Administrador' ? '#/reportes' : '#/planes'}>
+            {user.rol === 'Administrador' ? 'Explorar reportes' : 'Revisar plan SUSESO'}
+            <ArrowUpRight size={16} aria-hidden="true"/>
+          </a>
+        </aside>
       </>}
       <p className="dash-footnote">Actualización automática cada minuto. Los filtros corresponden a la fecha del evento. Las medidas pertenecen a los casos del período; un porcentaje sin denominador se registra como 0 en la fuente.</p>
     </>}
