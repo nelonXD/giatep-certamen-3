@@ -69,6 +69,41 @@ public class EvidenciaOcrTests(OcrFactory factory) : IClassFixture<OcrFactory>
         Assert.Contains("pasillo estaba obstruido con cajas", result.Texto);
         Assert.True(result.Confianza > 60);
     }
+    [Fact]
+    public async Task ConfirmacionGuardaOriginalYWordConReferenciaAlOriginal()
+    {
+        using var client = await Login("prevencion"); var p = Preparar();
+        var bytes = new byte[] {137,80,78,71,13,10,26,10};
+        using var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(bytes), "archivo", "Original.png");
+        form.Add(new StringContent("Transcripción revisada"), "titulo");
+        form.Add(new StringContent("Texto corregido por el usuario"), "texto");
+        var response = await client.PostAsync($"/api/v1/investigaciones/{p.Inv}/ocr/documento-con-original", form);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+        using var scope = factory.Services.CreateScope(); var db = scope.ServiceProvider.GetRequiredService<GiatepDbContext>();
+        var original = db.Evidencias.Single(e => e.Id == result.GetProperty("originalId").GetGuid());
+        var word = db.Evidencias.Single(e => e.Id == result.GetProperty("id").GetGuid());
+        Assert.Equal(p.Inv, original.InvestigacionId); Assert.Equal(p.Inv, word.InvestigacionId);
+        Assert.Equal(bytes, db.Archivos.Leer(original));
+        using var zip = new ZipArchive(new MemoryStream(db.Archivos.Leer(word)));
+        using var reader = new StreamReader(zip.GetEntry("word/document.xml")!.Open());
+        var xml = await reader.ReadToEndAsync();
+        Assert.Contains(original.Id.ToString(), xml); Assert.Contains("Texto corregido por el usuario", xml);
+    }
+    [Fact]
+    public async Task ConfirmacionInvalidaNoGuardaOriginalNiWord()
+    {
+        using var client = await Login("prevencion"); var p = Preparar();
+        using var scope = factory.Services.CreateScope(); var db = scope.ServiceProvider.GetRequiredService<GiatepDbContext>();
+        var antes = db.Evidencias.Count();
+        using var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(new byte[] {1,2,3,4,5,6,7,8}), "archivo", "falsa.png");
+        form.Add(new StringContent("Documento revisado"), "titulo"); form.Add(new StringContent("Texto revisado"), "texto");
+        var response = await client.PostAsync($"/api/v1/investigaciones/{p.Inv}/ocr/documento-con-original", form);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(antes, db.Evidencias.Count());
+    }
     private async Task<HttpClient> Login(string cuenta)
     {
         var client = factory.CreateClient();

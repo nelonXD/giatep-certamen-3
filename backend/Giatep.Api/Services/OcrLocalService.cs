@@ -4,7 +4,9 @@ using System.Text.Json;
 
 namespace Giatep.Api.Services;
 
-public record LecturaOcr(string Texto, double Confianza);
+public record LineaOcr(string Texto, double X, double Y, double Ancho, double Alto);
+public record DistribucionOcr(double Ancho, double Alto, LineaOcr[] Lineas);
+public record LecturaOcr(string Texto, double Confianza, DistribucionOcr? Distribucion = null);
 public interface IOcrLocalService
 {
     Task<LecturaOcr> Leer(byte[] imagen, CancellationToken token);

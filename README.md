@@ -8,13 +8,11 @@ Sistema de gestión e investigación de accidentes del trabajo y enfermedades pr
 - Node.js 24 y npm.
 - SQL Server disponible y una cuenta con permisos para crear y actualizar la base de datos local.
 
-## Reconocimiento local de evidencias
+## Reconocimiento de evidencias mediante API externa
 
-El motor local activo es PaddleOCR con modelos preentrenados para español. Consulta `backend/ocr/README.md` para instalar Python, dependencias y modelos. Configura `Ocr__Engine=Paddle` en `backend/.env`. Tesseract permanece como alternativa con `Ocr__Engine=Tesseract` y `npm ci` en `backend/ocr`.
+El proveedor predeterminado es OCR.space. Consulta [configuración, costos y privacidad](backend/ocr/API.md). Configura Ocr__Engine=OcrSpace y Ocr__ApiKey en backend/.env; el OCR necesita internet. Paddle y Tesseract quedan como alternativas locales opcionales.
 
-En una investigación abierta, entra en Evidencias → Escanear con IA y selecciona una imagen. El reconocimiento empieza automáticamente; revisa el texto antes de guardar el Word. La imagen se procesa temporalmente y no se almacena como evidencia. El documento revisado es el que se conserva. Los adjuntos normales no se escanean automáticamente.
-
-Se admite PNG/JPG de hasta 5 MB y 25 megapíxeles. Paddle usa un hilo, prioridad baja y afinidad a un núcleo en Windows, con una lectura simultánea y un máximo de 45 segundos. Los modelos están instalados localmente: las fotos no se envían a proveedores externos. Firmas, sombras y texto pequeño pueden requerir corrección manual.
+El flujo permite subir PNG/JPG de hasta 1 MB, revisar el texto y confirmar un Word. Las imágenes se envían al proveedor externo. Para la evaluación usa únicamente documentos sintéticos. La imagen y el Word revisado se guardan juntos al confirmar; el Word identifica el original por nombre e ID. Antes de confirmar, el escaneo no guarda evidencias.
 
 ## Configuración local
 

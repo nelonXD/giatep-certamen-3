@@ -35,7 +35,32 @@ export function App() {
     } else setReady(true);
     return () => { cancelled = true; window.removeEventListener('hashchange', changed); window.removeEventListener('giatep:expired', expired); };
   }, [sessionAttempt]);
-  useEffect(() => { mainRef.current?.focus(); document.title = `${path.startsWith('/resumen') ? 'Actividad y alertas' : path.startsWith('/planes') ? 'Planes de acción' : path.startsWith('/investigaciones') ? 'Investigaciones' : path.startsWith('/casos') ? 'Casos' : path.startsWith('/reportes') ? 'Reportes' : path.startsWith('/admin') ? (seccionesAdmin.find(s => path === `/admin/${s.id}`)?.nombre || 'Administración') : path === '/password' ? 'Contraseña' : 'Dashboard'} · GIATEP`; }, [path, user]);
+  useEffect(() => { mainRef.current?.focus({ preventScroll: true }); document.title = `${path.startsWith('/resumen') ? 'Actividad y alertas' : path.startsWith('/planes') ? 'Planes de acción' : path.startsWith('/investigaciones') ? 'Investigaciones' : path.startsWith('/casos') ? 'Casos' : path.startsWith('/reportes') ? 'Reportes' : path.startsWith('/admin') ? (seccionesAdmin.find(s => path === `/admin/${s.id}`)?.nombre || 'Administración') : path === '/password' ? 'Contraseña' : 'Dashboard'} · GIATEP`; }, [path, user]);
+  useEffect(() => {
+    if (!ready || !user) return;
+    const key = `giatep:view:${user.id}:${path}:scroll`;
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    let saved = 0;
+    try { saved = Number(sessionStorage.getItem(key) || 0); } catch { /* Optional preference. */ }
+    let observer: ResizeObserver | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const stop = () => { observer?.disconnect(); if (timer) clearTimeout(timer); };
+    if (navigation?.type === 'reload' && Number.isFinite(saved) && saved > 0) {
+      const restore = () => {
+        if (document.documentElement.scrollHeight - innerHeight >= saved) { window.scrollTo(0, saved); stop(); }
+      };
+      observer = new ResizeObserver(restore);
+      observer.observe(document.body);
+      timer = setTimeout(stop, 5000);
+      restore();
+    }
+    const save = () => { try { sessionStorage.setItem(key, String(window.scrollY)); } catch { /* Optional preference. */ } };
+    window.addEventListener('pagehide', save);
+    window.addEventListener('beforeunload', save);
+    window.addEventListener('wheel', stop, { passive: true });
+    window.addEventListener('touchstart', stop, { passive: true });
+    return () => { stop(); window.removeEventListener('pagehide', save); window.removeEventListener('beforeunload', save); window.removeEventListener('wheel', stop); window.removeEventListener('touchstart', stop); };
+  }, [ready, user?.id, path]);
   const [submenus, setSubmenus] = useState<Record<string, boolean>>({});
   useEffect(() => { setSubmenus(prev => ({ ...prev, [path.startsWith('/casos') ? '/casos' : path.startsWith('/investigaciones') ? '/investigaciones' : path.startsWith('/planes') ? '/planes' : '']: true })); }, [path]);
   if (!ready) return <Loading/>;

@@ -1,8 +1,10 @@
+import './investigaciones.css';
+import { useSessionView } from '../../hooks/useSessionView';
 import { useId, useState } from 'react';
 import { DenunciaResumen } from '../casos/DenunciaFields';
 import type { Denuncia } from '../casos/DenunciaFields';
 import { EvidenciaOcr } from './EvidenciaOcr';
-import { ArrowLeft, ArrowUpRight, Download, Plus } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, Download, Plus, FileText, Mic, FolderOpen, AlignLeft, ListChecks, GitBranch, ShieldCheck, Check, ChevronRight, ScanLine, Image as ImageIcon, CalendarDays, Building2 } from 'lucide-react';
 import { request, descargar } from '../../api/client';
 import { useLoad } from '../../hooks/useLoad';
 import { useAuth } from '../../context/AuthContext';
@@ -21,8 +23,8 @@ const etiquetas: Record<string, string> = { EnCurso: 'En curso', Cerrada: 'Cerra
 export function InvestigacionesPage({ path }: { path: string }) {
   const parts = path.split('/').filter(Boolean);
   const id = parts[1];
-  if (id === 'mis-investigaciones') return <Listado key="mias" soloMias/>;
-  return id ? <Expediente key={id} id={id}/> : <Listado key="todas"/>;
+  if (id === 'mis-investigaciones') return <div className="investigation-workspace"><Listado key="mias" soloMias/></div>;
+  return <div className="investigation-workspace">{id ? <Expediente key={id} id={id}/> : <Listado key="todas"/>}</div>;
 }
 
 function Listado({ soloMias = false }: { soloMias?: boolean }) {
@@ -33,7 +35,10 @@ function Listado({ soloMias = false }: { soloMias?: boolean }) {
 
 function Expediente({ id }: { id: string }) {
   const user = useAuth(), options = useLoad<Opciones>('/opciones'), result = useLoad<DetalleInvestigacion>(`/investigaciones/${id}`);
-  const [tab, setTab] = useState('antecedentes'), [error, setError] = useState(''), [success, setSuccess] = useState(''), [busy, setBusy] = useState(false), [editarMedida, setEditarMedida] = useState<Propuesta | null>(null), [editarEntrevista, setEditarEntrevista] = useState<Entrevista | null>(null), [editarHecho, setEditarHecho] = useState<Hecho | null>(null);
+  const viewKey = `giatep:view:${user.id}:investigacion:${id}`;
+  const [tab, setTab] = useSessionView<string>(`${viewKey}:tab`, 'antecedentes', (v): v is string => typeof v === 'string' && ['antecedentes','entrevistas','evidencias','relato','hechos','arbol','medidas'].includes(v));
+  const [ocrAbierto, setOcrAbierto] = useSessionView<boolean>(`${viewKey}:ocr`, false, (v): v is boolean => typeof v === 'boolean');
+  const [error, setError] = useState(''), [success, setSuccess] = useState(''), [busy, setBusy] = useState(false), [editarMedida, setEditarMedida] = useState<Propuesta | null>(null), [editarEntrevista, setEditarEntrevista] = useState<Entrevista | null>(null), [editarHecho, setEditarHecho] = useState<Hecho | null>(null);
   async function action(suffix: string, body?: object | FormData, method = 'POST', absolute = false) {
     setBusy(true); setError(''); setSuccess('');
     try {
@@ -47,34 +52,29 @@ function Expediente({ id }: { id: string }) {
   const centro = inv.antecedentes.establecimientoId || options.data?.establecimientos.find(c => c.nombre === inv.antecedentes.establecimiento)?.id;
   const pendientes = [!inv.entrevistas.length && 'entrevistas', !inv.evidencias.length && 'evidencias', inv.relatoFinal.trim().length < 20 && 'relato final', inv.hechos.length < 2 && 'hechos', !inv.hechos.some(h => h.esFinal) && 'hecho final', !inv.relaciones.length && 'árbol de causas', (!inv.medidas.length || inv.medidas.some(m => !m.hechoId)) && 'medidas vinculadas'].filter(Boolean);
   const tabs = [['antecedentes','Antecedentes'],['entrevistas','Entrevistas'],['evidencias','Evidencias'],['relato','Relato final'],['hechos','Lista de hechos'],['arbol','Árbol de causas'],['medidas','Medidas']];
+  const registered = [true, inv.entrevistas.length > 0, inv.evidencias.length > 0, inv.relatoFinal.trim().length >= 20, inv.hechos.length >= 2 && inv.hechos.some(h => h.esFinal), inv.relaciones.length > 0, inv.medidas.length > 0 && inv.medidas.every(m => m.hechoId)];
+  const completed = registered.filter(Boolean).length;
+  const icons = [FileText, Mic, FolderOpen, AlignLeft, ListChecks, GitBranch, ShieldCheck];
+
 
   return <>
-    <div className="page-heading">
+    <nav className="investigation-breadcrumb" aria-label="Ruta de navegación"><a href="#/investigaciones">Investigaciones</a><ChevronRight size={14} aria-hidden="true"/><span>Expediente</span></nav>
+    <div className="page-heading investigation-heading">
       <div>
         <p className="eyebrow">EXPEDIENTE DE INVESTIGACIÓN</p>
-        <h1>Investigación · {inv.antecedentes.codigo}</h1>
-        <p className="subtitle">{inv.antecedentes.establecimiento} · {inv.esHistorica ? 'Antecedente registrado' : 'Iniciada'} {date(inv.iniciadaEn)}</p>
+        <h1>{inv.antecedentes.codigo} <span className={`investigation-status status-${inv.estado}`}>{etiquetas[inv.estado]}</span></h1>
+        <p className="subtitle"><span><Building2 size={15} aria-hidden="true"/>{inv.antecedentes.establecimiento}</span><span><CalendarDays size={15} aria-hidden="true"/>{inv.esHistorica ? 'Antecedente registrado' : 'Iniciada'} {date(inv.iniciadaEn)}</span></p>
       </div>
       <a className="secondary" href={`#/casos/${inv.casoId}`}><ArrowLeft size={16}/> Ver caso</a>
     </div>
     <Message error={error || result.error || options.error} success={success}/>
     {inv.esHistorica && <p className="dev-notice">Este expediente conserva datos de la versión anterior. No se inventaron entrevistas, hechos ni relatos finales. {inv.estado === 'EnCurso' ? 'Completa las secciones y vincula las medidas conservadas a sus hechos antes de cerrarlo.' : 'Se conservan los antecedentes disponibles y sus actualizaciones; la investigación cerrada permanece de solo lectura.'}</p>}
-    <section className="panel detail">
-      <div className="detail-heading">
-        <div>
-          <h2>{etiquetas[inv.estado]}</h2>
-          <p className="help">{inv.cerradaEn ? `Cierre de investigación: ${date(inv.cerradaEn)}` : 'El cierre de la investigación no cierra el caso.'}</p>
-        </div>
-        <div className="action-row">
-          {editable && <button className="primary" disabled={busy} onClick={() => { if (window.confirm('¿Cerrar la investigación? Se bloqueará su edición; luego podrás iniciar el plan de acción.')) void action('/cerrar'); }}>Cerrar investigación</button>}
-          {inv.estado === 'Cerrada' && !inv.planIniciadoEn && user.rol === 'Prevencion' && <button className="primary" disabled={busy} onClick={async () => { if (await action('/plan')) location.hash = `/planes/${inv.casoId}`; }}>Iniciar plan de acción</button>}
-          {(inv.planIniciadoEn || inv.estado === 'Historica') && <a className="primary" href={`#/planes/${inv.casoId}`}>Ver plan de acción <ArrowUpRight size={16}/></a>}
-        </div>
-      </div>
-      {editable && <p className="help">{pendientes.length ? `Secciones por completar: ${pendientes.join(', ')}.` : 'Secciones registradas. El servidor verificará también las conexiones del árbol y los responsables antes del cierre.'}</p>}
+    <section className="investigation-summary" aria-label="Resumen del expediente">
+      <div className="investigation-progress"><div><span>Avance de registro</span><strong>{completed} <small>/ 7 secciones</small></strong></div><progress value={completed} max={7} aria-label="Secciones registradas"/><p>El cierre requiere la validación del expediente.</p></div>
+      {[{label:'Entrevistas',value:inv.entrevistas.length,icon:Mic,key:'entrevistas'},{label:'Evidencias',value:inv.evidencias.length,icon:FolderOpen,key:'evidencias'},{label:'Hechos registrados',value:inv.hechos.length,icon:ListChecks,key:'hechos'}].map(item=><button type="button" key={item.key} onClick={()=>setTab(item.key)} className="investigation-metric"><span className="investigation-metric-icon"><item.icon size={20} aria-hidden="true"/></span><span><strong>{item.value}</strong><small>{item.label}</small></span><ChevronRight size={16} aria-hidden="true"/></button>)}
     </section>
-    <nav className="tabs" aria-label="Secciones de la investigación">
-      {tabs.map(([key, label]) => <button key={key} className={tab === key ? 'selected' : ''} aria-pressed={tab === key} onClick={() => setTab(key)}>{label}</button>)}
+    <nav className="tabs investigation-tabs" aria-label="Secciones de la investigación">
+      {tabs.map(([key, label], index) => { const Icon = icons[index]; return <button key={key} className={tab === key ? 'selected' : ''} aria-pressed={tab === key} onClick={() => setTab(key)}><span className={`investigation-step${registered[index] ? ' complete' : ''}`}>{registered[index] ? <Check size={12} aria-hidden="true"/> : index+1}</span><Icon size={16} aria-hidden="true"/>{label}</button>; })}
     </nav>
 
     {<section hidden={tab !== 'antecedentes'} className="panel detail">
@@ -122,20 +122,19 @@ function Expediente({ id }: { id: string }) {
     </section>}
 
     {<section hidden={tab !== 'evidencias'} className="panel detail">
-      <h2>Evidencias de la investigación</h2>
-      <p className="help">Adjunta documentos, fotografías o informes que respalden la investigación. Los archivos se guardan en el servidor del proyecto.</p>
-      {inv.evidencias.map(e => <article className="measure" key={e.id}>
-        <div><strong>{e.nombre}</strong><p>{date(e.fecha)} · {Math.ceil(e.tamano / 1024)} KB</p></div>
+      <header className="investigation-section-heading"><span className="investigation-section-icon"><FolderOpen size={23} aria-hidden="true"/></span><div><p className="eyebrow">DOCUMENTACIÓN DEL EXPEDIENTE</p><h2>Evidencias de la investigación</h2><p className="help">Reúne los documentos que respaldan los hechos y revisa las transcripciones antes de incorporarlas.</p></div><span className="investigation-count">{inv.evidencias.length} archivos</span></header>
+      {inv.evidencias.map(e => <article className="measure investigation-evidence" key={e.id}>
+        <span className="investigation-file-icon">{e.tipo?.startsWith('image/') ? <ImageIcon size={21} aria-hidden="true"/> : <FileText size={21} aria-hidden="true"/>}</span><div className="investigation-file-info"><strong>{e.nombre}</strong><p>{date(e.fecha)} <span aria-hidden="true">·</span> {Math.ceil(e.tamano / 1024)} KB <span aria-hidden="true">·</span> {e.tipo?.startsWith('image/') ? 'Imagen original' : e.tipo?.includes('wordprocessingml') ? 'Documento Word' : 'Documento'}</p></div>
         <button className="secondary" onClick={async () => { try { await descargar(`/casos/${inv.casoId}/evidencias/${e.id}`, e.nombre); } catch (e) { setError((e as Error).message); } }}><Download size={16}/> Descargar</button>
       </article>)}
-      {!inv.evidencias.length && <p className="help">Todavía no hay evidencias adjuntas.</p>}
+      {!inv.evidencias.length && <div className="investigation-empty"><FolderOpen size={28} aria-hidden="true"/><div><strong>Un espacio para respaldar los hechos</strong><p>Adjunta la primera evidencia o transcribe una imagen con el escáner.</p></div></div>}
       {editable && <form className="measure-form" onSubmit={async e => { e.preventDefault(); const form = e.currentTarget; if (await action(`/casos/${inv.casoId}/evidencias`, new FormData(form), 'POST', true)) form.reset(); }}>
-        <h3>Adjuntar evidencia</h3>
+        <h3><Plus size={17} aria-hidden="true"/> Adjuntar un archivo</h3>
         <Field label="Archivo de evidencia" name="archivo" type="file" required accept=".pdf,.jpg,.jpeg,.png"/>
         <button className="secondary" disabled={busy}>Adjuntar evidencia</button>
       </form>}
-      {editable && <details className="ocr-accordion" style={{ marginTop: '1.5rem' }}>
-        <summary style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--color-primary)' }}>Escanear imagen con IA (opcional)</summary>
+      {editable && <details open={ocrAbierto} onToggle={e => setOcrAbierto(e.currentTarget.open)} className="ocr-accordion" style={{ marginTop: '1.5rem' }}>
+        <summary><span className="investigation-scan-icon"><ScanLine size={22} aria-hidden="true"/></span><span><strong>Escanear imagen con IA</strong><small>Extrae el texto, conserva su distribución y añade recortes del original.</small></span><span className="investigation-optional">Opcional</span></summary>
         <div style={{ marginTop: '1rem' }}>
           <EvidenciaOcr id={id} casoId={inv.casoId} evidencias={inv.evidencias.map(e => ({ id: e.id, nombre: e.nombre, tipo: e.tipo || 'image/png' }))} onSaved={result.refresh}/>
         </div>
@@ -243,6 +242,21 @@ function Expediente({ id }: { id: string }) {
         </div>
       </form>}
     </section>}
+    <section className="panel detail investigation-governance">
+      <div className="detail-heading">
+        <div>
+          <h2>{etiquetas[inv.estado]}</h2>
+          <p className="help">{inv.cerradaEn ? `Cierre de investigación: ${date(inv.cerradaEn)}` : 'El cierre de la investigación no cierra el caso.'}</p>
+        </div>
+        <div className="action-row">
+          {editable && <button className="secondary" disabled={busy} onClick={() => { if (window.confirm('¿Cerrar la investigación? Se bloqueará su edición; luego podrás iniciar el plan de acción.')) void action('/cerrar'); }}>Cerrar investigación</button>}
+          {inv.estado === 'Cerrada' && !inv.planIniciadoEn && user.rol === 'Prevencion' && <button className="primary" disabled={busy} onClick={async () => { if (await action('/plan')) location.hash = `/planes/${inv.casoId}`; }}>Iniciar plan de acción</button>}
+          {(inv.planIniciadoEn || inv.estado === 'Historica') && <a className="primary" href={`#/planes/${inv.casoId}`}>Ver plan de acción <ArrowUpRight size={16}/></a>}
+        </div>
+      </div>
+      {editable && <p className="help">{pendientes.length ? `Secciones por completar: ${pendientes.join(', ')}.` : 'Secciones registradas. El servidor verificará también las conexiones del árbol y los responsables antes del cierre.'}</p>}
+    </section>
+
   </>;
 }
 

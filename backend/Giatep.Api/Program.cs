@@ -20,7 +20,7 @@ Inicializacion.CargarEntorno(builder);
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, context, token) => {
     document.Info.Title = "GIATEP API";
     document.Info.Version = "v1";
-    document.Info.Description = "Gestión preventiva con JWT y roles Administrador, Prevencion y Jefatura. Los errores usan Problem Details. Incluye OCR local de evidencias con modelo preentrenado en español y generación de documentos Word revisados.";
+    document.Info.Description = "Gestión preventiva con JWT y roles Administrador, Prevencion y Jefatura. Los errores usan Problem Details. Incluye OCR de evidencias mediante OCR.space (o Google Cloud Vision opcional) y generación de documentos Word revisados.";
     document.Components ??= new OpenApiComponents();
     document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
     document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme { Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT", Description = "Token de ocho horas emitido por /api/v1/auth/login." };
@@ -45,7 +45,11 @@ builder.Services.AddScoped<CasoService>();
 builder.Services.AddScoped<InvestigacionService>();
 builder.Services.AddScoped<AccesoService>();
 builder.Services.AddScoped<AnalisisService>();
-builder.Services.AddScoped<IOcrLocalService, OcrLocalService>();
+if (string.Equals(builder.Configuration["Ocr:Engine"] ?? "OcrSpace", "OcrSpace", StringComparison.OrdinalIgnoreCase))
+    builder.Services.AddHttpClient<IOcrLocalService, OcrSpaceService>().RedactLoggedHeaders(new[] { "apikey" });
+else if (string.Equals(builder.Configuration["Ocr:Engine"], "GoogleVision", StringComparison.OrdinalIgnoreCase))
+    builder.Services.AddHttpClient<IOcrLocalService, OcrApiService>();
+else builder.Services.AddScoped<IOcrLocalService, OcrLocalService>();
 builder.Services.AddSingleton<IExportador, CsvExportador>();
 builder.Services.AddSingleton<IExportador, ExcelExportador>();
 builder.Services.AddSingleton<IExportador, PdfExportador>();
