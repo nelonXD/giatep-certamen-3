@@ -72,7 +72,7 @@ public static class CasoEndpoints
             acceso.Exigir(id); var medida = db.Medidas.SingleOrDefault(m => m.CasoId == id && m.Id == medidaId && m.Activa) ?? throw new KeyNotFoundException("La medida no existe.");
             if (acceso.EsJefatura && medida.UsuarioResponsableId != acceso.UsuarioId) return Results.Forbid();
             return Results.Problem(statusCode: 409, title: "Entrega la evidencia desde Planes de acción y solicita su verificación a Prevención.");
-        });
+        }).RequireAuthorization("Prevencion");
         grupo.MapGet("/{id:guid}/observaciones", (Guid id, AccesoService acceso, GiatepDbContext db) =>
         {
             acceso.Exigir(id);
@@ -89,7 +89,7 @@ public static class CasoEndpoints
         {
             var caso = acceso.Exigir(id); if (caso.Estado == EstadoCaso.Cerrado) throw new ReglaNegocioException("El expediente cerrado es de solo lectura.");
             Texto(dto.Texto, 5, 2000, "Observación"); var obs = new Observacion { Id = Guid.NewGuid(), CasoId = id, UsuarioId = acceso.UsuarioId, Autor = acceso.Actor.Identity!.Name!, Texto = dto.Texto.Trim(), Fecha = DateTimeOffset.UtcNow }; db.Observaciones.Add(obs); db.SaveChanges(); return Results.Created($"/api/v1/casos/{id}/investigacion", obs);
-        });
+        }).RequireAuthorization("Prevencion");
         grupo.MapPost("/{id:guid}/evidencias", async (Guid id, HttpRequest request, AccesoService acceso, GiatepDbContext db, InvestigacionService investigaciones) =>
         {
             var caso = acceso.Exigir(id); var inv = db.Investigaciones.SingleOrDefault(i => i.CasoId == id) ?? throw new ReglaNegocioException("Inicia la investigación antes de adjuntar evidencias."); investigaciones.Abierta(inv.Id);

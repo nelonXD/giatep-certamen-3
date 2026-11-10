@@ -19,10 +19,10 @@ export const perfiles = [
   },
   {
     value: 'Jefatura', nombre: 'Jefatura', icono: Building2,
-    descripcion: 'Consulta su centro y entrega sus medidas asignadas.',
+    descripcion: 'Analiza los casos y consulta el seguimiento de los planes de su centro.',
     alcance: 'Solo el establecimiento asignado.',
-    permisos: ['Consultar los casos y las investigaciones de su centro', 'Agregar observaciones en casos abiertos de su centro', 'Entregar evidencia de sus propias medidas asignadas', 'Consultar indicadores y reportes de su centro'],
-    limite: 'Prevención registra los casos y verifica el cumplimiento de las medidas.'
+    permisos: ['Consultar los casos y las investigaciones de su centro', 'Analizar antecedentes, causas y evidencias de las investigaciones', 'Consultar responsables, plazos y avance de los planes de acción', 'Consultar indicadores y reportes de su centro'],
+    limite: 'Acceso de solo lectura. Prevención registra, investiga y gestiona el cumplimiento de las medidas.'
   }
 ] as const;
 

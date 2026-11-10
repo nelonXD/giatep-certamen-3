@@ -59,7 +59,7 @@ public static class PlanEndpoints
             var evidencia = new EvidenciaMedida { Id = Guid.NewGuid(), MedidaId = id, UsuarioId = acceso.UsuarioId, Fecha = DateTimeOffset.UtcNow, Nombre = nombre, Tipo = tipo, Contenido = bytes };
             db.EvidenciasMedidas.Add(evidencia); medida.ImplementadaEn = evidencia.Fecha; medida.ComentarioCumplimiento = comentario.Trim(); db.SaveChanges();
             return Results.Ok(new { evidencia.Id });
-        }).DisableAntiforgery();
+        }).RequireAuthorization("Prevencion").DisableAntiforgery();
         group.MapPut("/{casoId:guid}/medidas/{id:guid}/revision", (Guid casoId, Guid id, RevisionMedidaDTO dto, AccesoService acceso, GiatepDbContext db) => {
             var medida = Medida(casoId, id, acceso, db);
             if (medida.Completada || !medida.ImplementadaEn.HasValue) throw new ReglaNegocioException("Primero debe entregarse la implementación con su evidencia.");
