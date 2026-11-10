@@ -10,7 +10,7 @@ public class CasoServiceTests
 {
     private readonly CasoService service = new(new CasoMemoriaRepository());
     private Caso Crear() => service.Crear(new("Centro sintético Norte", TipoCaso.Accidente,
-        DateOnly.FromDateTime(DateTime.Today), "Relato ficticio de un accidente durante una actividad de prueba."));
+        Consultas.Hoy(), "Relato ficticio de un accidente durante una actividad de prueba."));
     [Fact] public void NoPermiteSaltarDeBorradorACerrado()
     {
         var caso = Crear();
@@ -37,7 +37,7 @@ public class CasoServiceTests
     [Fact] public void RechazaFechaFutura()
     {
         Assert.Throws<ValidationException>(() => service.Crear(new("Centro de prueba", TipoCaso.Accidente,
-            DateOnly.FromDateTime(DateTime.Today.AddDays(1)), "Relato suficientemente extenso para validar la fecha.")));
+            Consultas.Hoy().AddDays(1), "Relato suficientemente extenso para validar la fecha.")));
     }
     [Fact] public void RechazaMedidaAjenaAlCaso()
     {
