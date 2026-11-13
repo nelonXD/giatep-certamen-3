@@ -488,6 +488,18 @@
   color: var(--admin-accent);
 }
 
+:root[data-theme='dark'] .admin-workspace .admin-edit {
+  background: #1a2b3e;
+  border-color: #42566c;
+  color: #a5ddfb;
+}
+
+:root[data-theme='dark'] .admin-workspace .admin-edit:hover {
+  background: #263d53;
+  border-color: #67c9f5;
+  color: #e1f5ff;
+}
+
 .admin-list-footer {
   display: flex;
   justify-content: space-between;
@@ -838,27 +850,56 @@
 }
 
 .admin-audit-detail {
-  min-width: 120px;
-  max-width: 360px;
+  min-width: 0;
+  max-width: none;
 }
 
-.admin-audit-detail summary {
+.admin-audit-toggle-cell {
+  min-width: 180px;
+}
+
+.admin-audit-detail-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 38px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
   font-size: 11px;
   font-weight: 600;
   color: var(--admin-accent);
-  min-height: 34px;
-  align-content: center;
-  white-space: nowrap;
   cursor: pointer;
 }
 
-.admin-audit-detail summary:hover {
+.admin-audit-detail-trigger:hover {
   color: var(--admin-accent-light);
 }
 
+.admin-audit-detail-trigger:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.admin-audit-expanded-row > td {
+  padding: 0 !important;
+  background: #f8fafc;
+}
+
+.admin-audit-detail-panel {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--admin-border);
+}
+
 .admin-audit-detail dl {
-  margin: 10px 0 0;
-  min-width: 230px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 0 24px;
+  margin: 0;
+  min-width: 0;
 }
 
 .admin-audit-detail dl > div {
@@ -880,6 +921,11 @@
   grid-template-columns: 1fr 1fr;
   font-size: 11px;
   overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.admin-audit-detail dd > span {
+  min-width: 0;
 }
 
 .admin-audit-detail p {
@@ -894,6 +940,7 @@
   color: var(--admin-muted);
   border-top: 1px solid var(--admin-border);
   padding-top: 8px;
+  overflow-wrap: anywhere;
 }
 
 /* Responsividad Stitch */

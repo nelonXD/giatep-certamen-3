@@ -21,13 +21,13 @@ export function accionAuditoria(value?: string) {
     Exportacion: 'Exportación', LecturaOCR: 'Lectura de imagen', DocumentoOCR: 'Documento creado',
     ArchivoNormalizacion: 'Normalización de formulario' } as Record<string, string>)[value || ''] || value?.replace(/([a-z])([A-Z])/g, '$1 $2') || 'Cambio';
 }
-export function AuditoriaDetalle({ cambios, registroId, centros }: { cambios?: string; registroId?: string; centros: Map<string, string> }) {
+export function AuditoriaDetalle({ cambios, registroId, centros, expanded = false, onToggle, panel = false }: { cambios?: string; registroId?: string; centros: Map<string, string>; expanded?: boolean; onToggle?: () => void; panel?: boolean }) {
   let lista: Cambio[] = [];
   try {
     const parsed: unknown = JSON.parse(cambios || '');
     if (Array.isArray(parsed)) lista = parsed.filter((c): c is Cambio => !!c && typeof c === 'object' && typeof c.campo === 'string');
   } catch { /* Los registros anteriores también pueden contener descripciones de texto. */ }
-  return <details className="admin-audit-detail"><summary>Ver detalle{lista.length ? ` · ${lista.length} ${lista.length === 1 ? 'campo' : 'campos'}` : ''}</summary>
+  const contenido = <>
     {lista.length ? <dl>{lista.map((c, i) => <div key={`${c.campo}-${i}`}>
       <dt>{campos[c.campo] || c.campo.replace(/([a-z])([A-Z])/g, '$1 $2')}</dt>
       <dd>{/password|contenido|token|secret/i.test(c.campo) ? 'Información protegida' : <>
@@ -36,5 +36,9 @@ export function AuditoriaDetalle({ cambios, registroId, centros }: { cambios?: s
       </>}</dd>
     </div>)}</dl> : <p>{cambios || 'No hay información adicional para este movimiento.'}</p>}
     <p className="admin-record-id">Referencia: {registroId || 'Sin referencia'}</p>
-  </details>;
+  </>;
+  if (panel) return <div className="admin-audit-detail admin-audit-detail-panel">{contenido}</div>;
+  return <button className="admin-audit-detail-trigger" type="button" aria-expanded={expanded} onClick={onToggle}>
+    <span aria-hidden="true">{expanded ? '▾' : '▸'}</span> Ver detalle{lista.length ? ` · ${lista.length} ${lista.length === 1 ? 'campo' : 'campos'}` : ''}
+  </button>;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { Users, Building2, BriefcaseBusiness, History, Plus, Search, Pencil, RefreshCw, ArrowUpRight, ShieldCheck, UserCheck } from 'lucide-react';
 import { useLoad } from '../../hooks/useLoad';
 import { Field, Select, Message, Loading, Pagination } from '../../components/common/UI';
@@ -23,6 +23,7 @@ export function AdminPage({ seccionId = 'usuarios' }: { seccionId?: SeccionAdmin
   const [page, setPage] = useState(1);
   const [buscar, setBuscar] = useState(''), [consulta, setConsulta] = useState('');
   const [estado, setEstado] = useState('todos'), [perfil, setPerfil] = useState('todos');
+  const [auditoriaAbierta, setAuditoriaAbierta] = useState<string | null>(null);
   const [editing, setEditing] = useState<RegistroAdmin | null>(null), [success, setSuccess] = useState(''), [busy, setBusy] = useState(false);
   const trigger = useRef<HTMLButtonElement | null>(null), listado = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -78,12 +79,11 @@ export function AdminPage({ seccionId = 'usuarios' }: { seccionId?: SeccionAdmin
         <div className="admin-empty"><Search size={28} aria-hidden="true"/><h3>{filtrado ? 'No encontramos coincidencias' : `Todavía no hay ${seccion.nombre.toLowerCase()}`}</h3><p>{filtrado ? 'Prueba con otro nombre o ajusta los filtros.' : 'Los registros aparecerán aquí cuando se incorporen al sistema.'}</p>{filtrado && <button className="secondary" onClick={limpiar}>Limpiar filtros</button>}</div> :
         <div><p className="admin-table-hint">Desliza la tabla hacia los lados para ver todos los datos y acciones.</p><div className="table-wrap" tabIndex={0} role="region" aria-label={`Tabla de ${seccion.nombre.toLowerCase()}, desplazable horizontalmente`}><table className="admin-table"><caption className="sr-only">Listado de {seccion.nombre.toLowerCase()}</caption><thead><tr>
           {(tab === 'auditoria' ? ['Fecha y hora', 'Realizado por', 'Registro', 'Movimiento', 'Detalle'] : tab === 'usuarios' ? ['Usuario', 'Perfil de acceso', 'Ámbito', 'Estado', ''] : tab === 'trabajadores' ? ['Trabajador', 'Cargo', 'Establecimiento', 'Estado', ''] : ['Establecimiento', 'Dirección', 'Estado', '']).map((c, i) => <th key={i} scope="col">{c || <span className="sr-only">Acciones</span>}</th>)}
-        </tr></thead><tbody>{visibles.map(r => <tr key={r.id}>
+        </tr></thead><tbody>{visibles.map(r => <Fragment key={r.id}><tr>
           {tab === 'auditoria' ? <>
             <td><strong>{r.fecha ? fecha.format(new Date(r.fecha)) : 'Sin fecha'}</strong><small>{r.fecha ? hora.format(new Date(r.fecha)) : ''}</small></td>
             <td><div className="admin-person"><span className="admin-avatar" aria-hidden="true">{iniciales(r.actor)}</span><strong>{r.actor || 'Sistema'}</strong></div></td>
             <td>{r.entidad || 'Registro'}</td><td><span className="admin-movement">{accionAuditoria(r.accion)}</span></td>
-            <td><AuditoriaDetalle cambios={r.cambios} registroId={r.registroId} centros={nombresCentros}/></td>
           </> : <>
             {tab === 'usuarios' ? <>
               <td><div className="admin-person"><span className="admin-avatar" aria-hidden="true">{iniciales(r.nombre)}</span><span><strong>{r.nombre}</strong><small>@{r.cuenta}</small></span></div></td>
@@ -95,7 +95,8 @@ export function AdminPage({ seccionId = 'usuarios' }: { seccionId?: SeccionAdmin
             <td><span className={`admin-status${r.activo ? ' active' : ''}`}><span aria-hidden="true"/>{r.activo ? 'Activo' : 'Inactivo'}</span></td>
             <td className="admin-action-cell"><button className="admin-edit" disabled={busy} onClick={e => editar(r, e.currentTarget)}><Pencil size={15} aria-hidden="true"/>Editar<span className="sr-only"> {r.nombre}</span><ArrowUpRight size={14} aria-hidden="true"/></button></td>
           </>}
-        </tr>)}</tbody></table></div></div>}
+          {tab === 'auditoria' && <td className="admin-audit-toggle-cell"><AuditoriaDetalle cambios={r.cambios} registroId={r.registroId} centros={nombresCentros} expanded={auditoriaAbierta === r.id} onToggle={() => setAuditoriaAbierta(auditoriaAbierta === r.id ? null : r.id)}/></td>}
+        </tr>{tab === 'auditoria' && auditoriaAbierta === r.id && <tr className="admin-audit-expanded-row"><td colSpan={5}><AuditoriaDetalle cambios={r.cambios} registroId={r.registroId} centros={nombresCentros} panel/></td></tr>}</Fragment>)}</tbody></table></div></div>}
       {!result.loading && !result.error && <div className="admin-list-footer"><span role="status">{visibles.length} {visibles.length === 1 ? 'registro visible' : 'registros visibles'}{tab === 'trabajadores' || tab === 'auditoria' ? ' en esta página' : ` de ${total}`}</span><span>GIATEP · Administración</span></div>}
       {result.data && !Array.isArray(result.data) && result.data.total > (tab === 'auditoria' ? 20 : 15) && <Pagination page={page} total={result.data.total} size={tab === 'auditoria' ? 20 : 15} onChange={next => { setPage(next); listado.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); }}/ >}
     </section>
