@@ -69,10 +69,13 @@ public class ApiTests(GiatepFactory factory) : IClassFixture<GiatepFactory>
         Assert.Equal(HttpStatusCode.NotFound, (await jefe.GetAsync($"/api/v1/casos/{otro.GetProperty("id").GetString()}")).StatusCode);
         var scoped = await jefe.GetFromJsonAsync<JsonElement>("/api/v1/casos?tamano=100"); Assert.All(scoped.GetProperty("datos").EnumerateArray(), x => Assert.Equal(me.GetProperty("establecimientoId").GetString(), x.GetProperty("establecimientoId").GetString()));
     }
-    [Fact] public async Task DashboardTieneSeisIndicadoresYDatos()
+    [Fact] public async Task DashboardTieneSieteIndicadoresYDatos()
     {
         using var c = await Login("prevencion"); var d = await c.GetFromJsonAsync<JsonElement>("/api/v1/dashboard");
-        Assert.Equal(6, d.GetProperty("indicadores").GetArrayLength()); Assert.True(d.GetProperty("meses").GetArrayLength() >= 12); Assert.True(d.GetProperty("indicadores")[0].GetProperty("valor").GetDouble() >= 500);
+        var indicadores = d.GetProperty("indicadores");
+        Assert.Equal(7, indicadores.GetArrayLength());
+        Assert.Contains(indicadores.EnumerateArray(), k => k.GetProperty("nombre").GetString() == "Medidas vencidas");
+        Assert.True(d.GetProperty("meses").GetArrayLength() >= 12); Assert.True(indicadores[0].GetProperty("valor").GetDouble() >= 500);
     }
     [Fact] public async Task RangoInvalidoRechazado() { using var c = await Login("prevencion"); Assert.Equal(HttpStatusCode.BadRequest, (await c.GetAsync("/api/v1/dashboard?desde=2026-12-01&hasta=2026-01-01")).StatusCode); }
     [Fact] public async Task PaginacionInvalidaRechazada() { using var c = await Login("prevencion"); Assert.Equal(HttpStatusCode.BadRequest, (await c.GetAsync("/api/v1/casos?pagina=0")).StatusCode); }
