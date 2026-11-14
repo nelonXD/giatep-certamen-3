@@ -38,7 +38,23 @@ builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Ad
 var conexion = builder.Configuration.GetConnectionString("Giatep");
 if (string.IsNullOrWhiteSpace(conexion))
     throw new InvalidOperationException("Configura ConnectionStrings__Giatep como variable de entorno o en .env para desarrollo local.");
-builder.Services.AddDbContext<GiatepDbContext>(options => options.UseSqlServer(conexion));
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyHeader()
+              .AllowAnyMethod()
+              .SetIsOriginAllowed(_ => true)
+              .AllowCredentials();
+    });
+});
+builder.Services.AddDbContext<GiatepDbContext>(options =>
+{
+    if (conexion.Contains("Host=") || conexion.Contains("Port=") || conexion.Contains("postgres") || conexion.StartsWith("postgresql:", StringComparison.OrdinalIgnoreCase))
+        options.UseNpgsql(conexion);
+    else
+        options.UseSqlServer(conexion);
+});
 builder.Services.AddSingleton(new AlmacenEvidencias(builder.Configuration["Storage:Path"] ?? Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "../storage/evidencias"))));
 builder.Services.AddScoped<ICasoRepository, CasoSqlRepository>();
 builder.Services.AddScoped<CasoService>();
@@ -110,12 +126,13 @@ app.Use(async (context, next) => {
     context.Response.Headers["Cache-Control"] = "no-store";
     await next(context);
 });
+app.UseCors();
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
 app.MapGet("/health", async (GiatepDbContext db, CancellationToken token) =>
     await db.Database.CanConnectAsync(token)
-        ? Results.Ok(new { estado = "disponible", almacenamiento = "SQL Server" })
+        ? Results.Ok(new { estado = "disponible", almacenamiento = db.Database.IsNpgsql() ? "Supabase PostgreSQL" : "SQL Server" })
         : Results.Problem(statusCode: 503, title: "La base de datos no está disponible.")).AllowAnonymous();
 if (app.Environment.IsDevelopment()) { app.MapOpenApi().AllowAnonymous(); app.MapScalarApiReference().AllowAnonymous(); }
 app.MapCasos();
@@ -130,8 +147,12 @@ app.MapReportes();
 if (app.Environment.IsDevelopment() || args.Contains("--migrar-archivos=true"))
 {
     using var scope = app.Services.CreateScope();
-    await MigradorArchivos.Migrar(scope.ServiceProvider.GetRequiredService<GiatepDbContext>());
-    if (!args.Contains("--migrar-archivos=true")) Inicializacion.Sembrar(scope.ServiceProvider.GetRequiredService<GiatepDbContext>(), app.Configuration);
+    var db = scope.ServiceProvider.GetRequiredService<GiatepDbContext>();
+    if (db.Database.IsNpgsql())
+        await db.Database.EnsureCreatedAsync();
+    else
+        await MigradorArchivos.Migrar(db);
+    if (!args.Contains("--migrar-archivos=true")) Inicializacion.Sembrar(db, app.Configuration);
 }
 if (args.Contains("--migrar-archivos=true")) return;
 app.Run();

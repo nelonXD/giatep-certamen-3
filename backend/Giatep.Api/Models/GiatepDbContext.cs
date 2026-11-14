@@ -124,8 +124,9 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        var isPg = Database.IsNpgsql();
         var evidenciaMedida = model.Entity<EvidenciaMedida>();
-        evidenciaMedida.ToTable("EvidenciasMedidas", t => t.HasCheckConstraint("CK_EvidenciasMedidas_Metadatos", "[Tamano] BETWEEN 8 AND 5242880 AND LEN([Ruta]) > 0 AND LEN([Sha256]) = 64"));
+        evidenciaMedida.ToTable("EvidenciasMedidas", t => t.HasCheckConstraint("CK_EvidenciasMedidas_Metadatos", isPg ? "\"Tamano\" BETWEEN 8 AND 5242880 AND LENGTH(\"Ruta\") > 0 AND LENGTH(\"Sha256\") = 64" : "[Tamano] BETWEEN 8 AND 5242880 AND LEN([Ruta]) > 0 AND LEN([Sha256]) = 64"));
         evidenciaMedida.HasKey(e => e.Id);
         evidenciaMedida.Property(e => e.Nombre).HasMaxLength(180);
         evidenciaMedida.Property(e => e.Tipo).HasMaxLength(80);
@@ -146,16 +147,16 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
         diep.HasIndex(d => d.CasoId).IsUnique();
         foreach (var propiedad in typeof(Diep).GetProperties().Where(p => p.PropertyType == typeof(string))) diep.Property<string>(propiedad.Name).HasMaxLength(2000);
         model.Entity<Trabajador>().Property(t => t.Run).HasMaxLength(9);
-        model.Entity<Trabajador>().HasIndex(t => t.Run).IsUnique().HasFilter("[Run] IS NOT NULL");
+        model.Entity<Trabajador>().HasIndex(t => t.Run).IsUnique().HasFilter(isPg ? "\"Run\" IS NOT NULL" : "[Run] IS NOT NULL");
         foreach (var nombre in new[] { "Direccion", "Comuna", "Telefono", "Sexo", "Nacionalidad", "PuebloOriginario", "OtroPueblo" }) model.Entity<Trabajador>().Property<string>(nombre).HasMaxLength(2000);
         foreach (var nombre in new[] { "FechaIngreso", "AntiguedadUnidad", "TipoContrato", "TipoIngreso", "CategoriaOcupacional" }) model.Entity<Trabajador>().Property<string>(nombre).HasMaxLength(2000);
         var casos = model.Entity<CasoRegistro>();
         casos.ToTable("Casos", table =>
         {
-            table.HasCheckConstraint("CK_Casos_Tipo", "[Tipo] IN (0, 1)");
-            table.HasCheckConstraint("CK_Casos_Estado", "[Estado] IN (0, 1, 2, 3)");
-            table.HasCheckConstraint("CK_Casos_Establecimiento", "LEN(LTRIM(RTRIM([Establecimiento]))) >= 3");
-            table.HasCheckConstraint("CK_Casos_Relato", "LEN(LTRIM(RTRIM([Relato]))) >= 20");
+            table.HasCheckConstraint("CK_Casos_Tipo", isPg ? "\"Tipo\" IN (0, 1)" : "[Tipo] IN (0, 1)");
+            table.HasCheckConstraint("CK_Casos_Estado", isPg ? "\"Estado\" IN (0, 1, 2, 3)" : "[Estado] IN (0, 1, 2, 3)");
+            table.HasCheckConstraint("CK_Casos_Establecimiento", isPg ? "LENGTH(TRIM(\"Establecimiento\")) >= 3" : "LEN(LTRIM(RTRIM([Establecimiento]))) >= 3");
+            table.HasCheckConstraint("CK_Casos_Relato", isPg ? "LENGTH(TRIM(\"Relato\")) >= 20" : "LEN(LTRIM(RTRIM([Relato]))) >= 20");
         });
         casos.HasKey(c => c.Id);
         casos.HasOne(c => c.Diat).WithOne().HasForeignKey<Diat>(d => d.CasoId).OnDelete(DeleteBehavior.Restrict);
@@ -174,8 +175,8 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
         var medidas = model.Entity<MedidaRegistro>();
         medidas.ToTable("Medidas", table =>
         {
-            table.HasCheckConstraint("CK_Medidas_Descripcion", "LEN(LTRIM(RTRIM([Descripcion]))) >= 10");
-            table.HasCheckConstraint("CK_Medidas_Responsable", "LEN(LTRIM(RTRIM([Responsable]))) >= 3");
+            table.HasCheckConstraint("CK_Medidas_Descripcion", isPg ? "LENGTH(TRIM(\"Descripcion\")) >= 10" : "LEN(LTRIM(RTRIM([Descripcion]))) >= 10");
+            table.HasCheckConstraint("CK_Medidas_Responsable", isPg ? "LENGTH(TRIM(\"Responsable\")) >= 3" : "LEN(LTRIM(RTRIM([Responsable]))) >= 3");
         });
         medidas.HasKey(m => m.Id);
         medidas.Property(m => m.Activa).HasDefaultValue(true);
@@ -199,7 +200,7 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
             model.Entity(tipoArchivo).HasIndex("Ruta").IsUnique();
         }
         var usuarios = model.Entity<Usuario>();
-        usuarios.ToTable("Usuarios", t => t.HasCheckConstraint("CK_Usuarios_Rol", "[Rol] IN ('Administrador','Prevencion','Jefatura') AND ([Rol] <> 'Jefatura' OR [EstablecimientoId] IS NOT NULL)"));
+        usuarios.ToTable("Usuarios", t => t.HasCheckConstraint("CK_Usuarios_Rol", isPg ? "\"Rol\" IN ('Administrador','Prevencion','Jefatura') AND (\"Rol\" <> 'Jefatura' OR \"EstablecimientoId\" IS NOT NULL)" : "[Rol] IN ('Administrador','Prevencion','Jefatura') AND ([Rol] <> 'Jefatura' OR [EstablecimientoId] IS NOT NULL)"));
         usuarios.HasKey(e => e.Id);
         usuarios.Property(e => e.Cuenta).HasMaxLength(50).IsRequired();
         usuarios.HasIndex(e => e.Cuenta).IsUnique();
@@ -216,7 +217,7 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
         model.Entity<Observacion>().Property(e => e.Autor).HasMaxLength(120).IsRequired();
         model.Entity<Observacion>().HasOne<CasoRegistro>().WithMany().HasForeignKey(e => e.CasoId).OnDelete(DeleteBehavior.Cascade);
         model.Entity<Observacion>().HasOne<Usuario>().WithMany().HasForeignKey(e => e.UsuarioId).OnDelete(DeleteBehavior.Restrict);
-        model.Entity<Evidencia>().ToTable("Evidencias", t => t.HasCheckConstraint("CK_Evidencias_Metadatos", "[Tamano] BETWEEN 8 AND 5242880 AND LEN([Ruta]) > 0 AND LEN([Sha256]) = 64")).HasKey(e => e.Id);
+        model.Entity<Evidencia>().ToTable("Evidencias", t => t.HasCheckConstraint("CK_Evidencias_Metadatos", isPg ? "\"Tamano\" BETWEEN 8 AND 5242880 AND LENGTH(\"Ruta\") > 0 AND LENGTH(\"Sha256\") = 64" : "[Tamano] BETWEEN 8 AND 5242880 AND LEN([Ruta]) > 0 AND LEN([Sha256]) = 64")).HasKey(e => e.Id);
         model.Entity<Evidencia>().Property(e => e.Nombre).HasMaxLength(180).IsRequired();
         model.Entity<Evidencia>().Property(e => e.Tipo).HasMaxLength(80).IsRequired();
         model.Entity<Evidencia>().HasOne<CasoRegistro>().WithMany().HasForeignKey(e => e.CasoId).OnDelete(DeleteBehavior.Cascade);
@@ -229,19 +230,20 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
         model.Entity<Auditoria>().HasIndex(e => e.Fecha);
         // No FK de auditoría al usuario: conservar la trazabilidad aunque se desactive una cuenta.
         var investigaciones = model.Entity<Investigacion>();
-        investigaciones.ToTable("Investigaciones", t => t.HasCheckConstraint("CK_Investigaciones_Estado", "[Estado] IN ('EnCurso','Cerrada','Historica')"));
+        investigaciones.ToTable("Investigaciones", t => t.HasCheckConstraint("CK_Investigaciones_Estado", isPg ? "\"Estado\" IN ('EnCurso','Cerrada','Historica')" : "[Estado] IN ('EnCurso','Cerrada','Historica')"));
         investigaciones.HasKey(i => i.Id); investigaciones.HasIndex(i => i.CasoId).IsUnique();
         investigaciones.Property(i => i.Estado).HasMaxLength(20).IsRequired();
         investigaciones.Property(i => i.Antecedentes).IsRequired(); investigaciones.Property(i => i.RelatoFinal).HasMaxLength(10000).IsRequired();
-        investigaciones.Property(i => i.Version).IsRowVersion();
+        if (isPg) investigaciones.Property(i => i.Version).HasDefaultValue(Array.Empty<byte>());
+        else investigaciones.Property(i => i.Version).IsRowVersion();
         investigaciones.HasOne<CasoRegistro>().WithMany().HasForeignKey(i => i.CasoId).OnDelete(DeleteBehavior.Restrict);
         var entrevistas = model.Entity<Entrevista>(); entrevistas.ToTable("Entrevistas"); entrevistas.HasKey(e => e.Id);
         entrevistas.Property(e => e.Entrevistado).HasMaxLength(120).IsRequired(); entrevistas.Property(e => e.Calidad).HasMaxLength(30).IsRequired(); entrevistas.Property(e => e.Declaracion).HasMaxLength(5000).IsRequired();
         entrevistas.HasOne<Investigacion>().WithMany().HasForeignKey(e => e.InvestigacionId).OnDelete(DeleteBehavior.Restrict);
         var hechos = model.Entity<Hecho>(); hechos.ToTable("Hechos"); hechos.HasKey(h => h.Id); hechos.Property(h => h.Descripcion).HasMaxLength(1000).IsRequired();
-        hechos.HasIndex(h => h.InvestigacionId).HasFilter("[EsFinal] = 1").IsUnique();
+        hechos.HasIndex(h => h.InvestigacionId).HasFilter(isPg ? "\"EsFinal\" = true" : "[EsFinal] = 1").IsUnique();
         hechos.HasOne<Investigacion>().WithMany().HasForeignKey(h => h.InvestigacionId).OnDelete(DeleteBehavior.Restrict);
-        var relaciones = model.Entity<RelacionCausal>(); relaciones.ToTable("RelacionesCausales", t => t.HasCheckConstraint("CK_Relaciones_NoAutoRelacion", "[AntecedenteId] <> [ConsecuenciaId]")); relaciones.HasKey(r => r.Id);
+        var relaciones = model.Entity<RelacionCausal>(); relaciones.ToTable("RelacionesCausales", t => t.HasCheckConstraint("CK_Relaciones_NoAutoRelacion", isPg ? "\"AntecedenteId\" <> \"ConsecuenciaId\"" : "[AntecedenteId] <> [ConsecuenciaId]")); relaciones.HasKey(r => r.Id);
         relaciones.HasIndex(r => new { r.AntecedenteId, r.ConsecuenciaId }).IsUnique();
         relaciones.HasOne<Investigacion>().WithMany().HasForeignKey(r => r.InvestigacionId).OnDelete(DeleteBehavior.Restrict);
         relaciones.HasOne<Hecho>().WithMany().HasForeignKey(r => r.AntecedenteId).OnDelete(DeleteBehavior.Restrict);
@@ -252,7 +254,7 @@ public sealed class GiatepDbContext(DbContextOptions<GiatepDbContext> options, I
         propuestas.HasOne<Hecho>().WithMany().HasForeignKey(m => m.HechoId).OnDelete(DeleteBehavior.Restrict);
         propuestas.HasOne<Usuario>().WithMany().HasForeignKey(m => m.UsuarioResponsableId).OnDelete(DeleteBehavior.Restrict);
         medidas.HasOne<MedidaInvestigacion>().WithMany().HasForeignKey(m => m.PropuestaId).OnDelete(DeleteBehavior.Restrict);
-        medidas.HasIndex(m => m.PropuestaId).IsUnique().HasFilter("[PropuestaId] IS NOT NULL");
+        medidas.HasIndex(m => m.PropuestaId).IsUnique().HasFilter(isPg ? "\"PropuestaId\" IS NOT NULL" : "[PropuestaId] IS NOT NULL");
         model.Entity<Evidencia>().HasOne<Investigacion>().WithMany().HasForeignKey(e => e.InvestigacionId).OnDelete(DeleteBehavior.Restrict);
     }
 }

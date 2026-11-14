@@ -1,0 +1,27 @@
+name: giatep
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: giatep-api
+    ports:
+      - "5080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Giatep=${ConnectionStrings__Giatep}
+      - Jwt__Key=${Jwt__Key}
+      - Seed__AdminPassword=${Seed__AdminPassword}
+      - Seed__PrevencionPassword=${Seed__PrevencionPassword}
+      - Seed__JefaturaPassword=${Seed__JefaturaPassword}
+      - Seed__JefaturaSurPassword=${Seed__JefaturaSurPassword}
+      - Seed__DatosDemostracion=true
+      - Ocr__Engine=${Ocr__Engine:-OcrSpace}
+      - Ocr__ApiKey=${Ocr__ApiKey:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
