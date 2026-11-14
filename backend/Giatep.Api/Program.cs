@@ -135,10 +135,22 @@ app.UseCors();
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
-app.MapGet("/health", async (GiatepDbContext db, CancellationToken token) =>
-    await db.Database.CanConnectAsync(token)
-        ? Results.Ok(new { estado = "disponible", almacenamiento = db.Database.IsNpgsql() ? "Supabase PostgreSQL" : "SQL Server" })
-        : Results.Problem(statusCode: 503, title: "La base de datos no está disponible.")).AllowAnonymous();
+app.MapGet("/health", async (GiatepDbContext db, IConfiguration config, CancellationToken token) =>
+{
+    var cs = config.GetConnectionString("Giatep") ?? "VACIO";
+    var redacted = cs.Length > 25 ? cs[..15] + "..." + cs[^10..] : cs;
+    try
+    {
+        var conn = db.Database.GetDbConnection();
+        await conn.OpenAsync(token);
+        await conn.CloseAsync();
+        return Results.Ok(new { estado = "disponible", almacenamiento = db.Database.IsNpgsql() ? "Supabase PostgreSQL" : "SQL Server" });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(statusCode: 503, title: "Error conectando a la base de datos.", detail: $"{ex.GetType().Name}: {ex.Message} (Cadena: {redacted})");
+    }
+}).AllowAnonymous();
 if (app.Environment.IsDevelopment()) { app.MapOpenApi().AllowAnonymous(); app.MapScalarApiReference().AllowAnonymous(); }
 app.MapCasos();
 app.MapInvestigaciones();
