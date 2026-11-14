@@ -16,6 +16,11 @@ using Scalar.AspNetCore;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
+var portEnv = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(portEnv))
+{
+    builder.WebHost.UseUrls($"http://*:{portEnv}");
+}
 Inicializacion.CargarEntorno(builder);
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, context, token) => {
     document.Info.Title = "GIATEP API";
