@@ -19,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 var portEnv = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(portEnv))
 {
-    builder.WebHost.UseUrls($"http://*:{portEnv}");
+    builder.WebHost.UseUrls($"http://0.0.0.0:{portEnv}");
 }
 Inicializacion.CargarEntorno(builder);
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, context, token) => {
