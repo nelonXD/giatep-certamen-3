@@ -1,0 +1,11 @@
+flowchart LR
+  U[Usuario por rol] --> W[React y TypeScript]
+  W --> A[API REST ASP.NET Core y JWT]
+  A --> S[Servicios de casos y acceso]
+  A --> B[Análisis y reportes]
+  S --> R[ICasoRepository]
+  R --> E[EF Core]
+  B --> E
+  B --> X[Strategy XLSX PDF CSV]
+  E --> D[(SQL Server)]
+  E --> L[Auditoría de cambios]

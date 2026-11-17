@@ -31,6 +31,10 @@
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, Menlo, monospace;
 }
 
+html {
+  scroll-padding-top: 90px;
+}
+
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--surface); color: var(--text-primary); -webkit-font-smoothing: antialiased; }
 button, input, select, textarea { font: inherit; }

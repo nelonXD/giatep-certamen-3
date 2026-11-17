@@ -1,0 +1,28 @@
+---
+title: Modelo entidad relación de GIATEP
+---
+erDiagram
+    direction TB
+    ESTABLECIMIENTO ||--o{ TRABAJADOR : agrupa
+    ESTABLECIMIENTO o|--o{ USUARIO : asigna
+    ESTABLECIMIENTO o|--o{ CASO : registra
+    TRABAJADOR o|--o{ CASO : afecta
+    EMPLEADOR o|--o{ CASO : emplea
+    CASO ||--o| DIAT : detalle_accidente
+    CASO ||--o| DIEP : detalle_enfermedad
+    CASO ||--o| INVESTIGACION : origina
+    CASO ||--o{ OBSERVACION : recibe
+    USUARIO ||--o{ OBSERVACION : escribe
+    INVESTIGACION ||--o{ ENTREVISTA : documenta
+    INVESTIGACION o|--o{ EVIDENCIA_INVESTIGACION : respalda
+    INVESTIGACION ||--o{ HECHO_CAUSAL : identifica
+    INVESTIGACION ||--o{ RELACION_CAUSAL : contiene
+    INVESTIGACION ||--o{ PROPUESTA_MEDIDA : propone
+    HECHO_CAUSAL ||--o{ RELACION_CAUSAL : antecedente
+    HECHO_CAUSAL ||--o{ RELACION_CAUSAL : consecuencia
+    HECHO_CAUSAL o|--o{ PROPUESTA_MEDIDA : fundamenta
+    USUARIO ||--o{ PROPUESTA_MEDIDA : responsable
+    CASO ||--o{ MEDIDA_ACTIVA : planifica
+    PROPUESTA_MEDIDA o|--o| MEDIDA_ACTIVA : activa
+    USUARIO o|--o{ MEDIDA_ACTIVA : ejecuta
+    MEDIDA_ACTIVA ||--o{ EVIDENCIA_MEDIDA : acredita

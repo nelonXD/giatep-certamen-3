@@ -1,0 +1,132 @@
+---
+title: Modelo entidad relación de GIATEP
+---
+erDiagram
+    direction TB
+    ESTABLECIMIENTO ||--o{ TRABAJADOR : agrupa
+    ESTABLECIMIENTO o|--o{ USUARIO : asigna
+    ESTABLECIMIENTO o|--o{ CASO : registra
+    TRABAJADOR o|--o{ CASO : afecta
+    EMPLEADOR o|--o{ CASO : emplea
+    CASO ||--o| DIAT : detalle_accidente
+    CASO ||--o| DIEP : detalle_enfermedad
+    CASO ||--o| INVESTIGACION : origina
+    CASO ||--o{ OBSERVACION : recibe
+    USUARIO ||--o{ OBSERVACION : escribe
+    INVESTIGACION ||--o{ ENTREVISTA : documenta
+    INVESTIGACION o|--o{ EVIDENCIA_INVESTIGACION : respalda
+    INVESTIGACION ||--o{ HECHO_CAUSAL : identifica
+    INVESTIGACION ||--o{ RELACION_CAUSAL : contiene
+    INVESTIGACION ||--o{ PROPUESTA_MEDIDA : propone
+    HECHO_CAUSAL ||--o{ RELACION_CAUSAL : antecedente
+    HECHO_CAUSAL ||--o{ RELACION_CAUSAL : consecuencia
+    HECHO_CAUSAL o|--o{ PROPUESTA_MEDIDA : fundamenta
+    USUARIO ||--o{ PROPUESTA_MEDIDA : responsable
+    CASO ||--o{ MEDIDA_ACTIVA : planifica
+    PROPUESTA_MEDIDA o|--o| MEDIDA_ACTIVA : activa
+    USUARIO o|--o{ MEDIDA_ACTIVA : ejecuta
+    MEDIDA_ACTIVA ||--o{ EVIDENCIA_MEDIDA : acredita
+
+    ESTABLECIMIENTO {
+        uuid Id PK
+        string Nombre
+    }
+    TRABAJADOR {
+        uuid Id PK
+        string Run UK
+        string Nombre
+        uuid EstablecimientoId FK
+    }
+    EMPLEADOR {
+        uuid Id PK
+        string Rut UK
+        string Nombre
+    }
+    USUARIO {
+        uuid Id PK
+        string Rol
+        uuid EstablecimientoId FK
+    }
+    CASO {
+        uuid Id PK
+        string Codigo UK
+        string Tipo
+        date Fecha
+        string Relato
+        date FechaEmision
+        string Folio
+        uuid TrabajadorId FK
+        uuid EmpleadorId FK
+        uuid EstablecimientoId FK
+    }
+    DIAT {
+        uuid Id PK
+        uuid CasoId FK,UK
+        time HoraAccidente
+        string LugarAccidente
+        string TipoAccidente
+        string TipoTrayecto
+    }
+    DIEP {
+        uuid Id PK
+        uuid CasoId FK,UK
+        int DuracionSintomas
+        string ParteCuerpo
+        string Agentes
+        int TiempoExposicion
+    }
+    INVESTIGACION {
+        uuid Id PK
+        uuid CasoId FK,UK
+        string Estado
+        string RelatoFinal
+    }
+    OBSERVACION {
+        uuid Id PK
+        uuid CasoId FK
+        uuid UsuarioId FK
+        string Texto
+    }
+    ENTREVISTA {
+        uuid Id PK
+        uuid InvestigacionId FK
+        string Entrevistado
+        string Declaracion
+    }
+    EVIDENCIA_INVESTIGACION {
+        uuid Id PK
+        uuid CasoId FK
+        uuid InvestigacionId FK
+        string Nombre
+    }
+    HECHO_CAUSAL {
+        uuid Id PK
+        uuid InvestigacionId FK
+        string Descripcion
+        bool EsFinal
+    }
+    RELACION_CAUSAL {
+        uuid Id PK
+        uuid InvestigacionId FK
+        uuid AntecedenteId FK
+        uuid ConsecuenciaId FK
+    }
+    PROPUESTA_MEDIDA {
+        uuid Id PK
+        uuid InvestigacionId FK
+        uuid HechoId FK
+        uuid UsuarioResponsableId FK
+        date Plazo
+    }
+    MEDIDA_ACTIVA {
+        uuid Id PK
+        uuid CasoId FK
+        uuid PropuestaId FK,UK
+        uuid UsuarioResponsableId FK
+        bool Completada
+    }
+    EVIDENCIA_MEDIDA {
+        uuid Id PK
+        uuid MedidaId FK
+        string Nombre
+    }

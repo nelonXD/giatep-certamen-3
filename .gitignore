@@ -16,7 +16,6 @@ tmp/
 entrega/
 
 # Informes, material académico y resultados locales (no forman parte de la app).
-/docs/
 /evidencias/
 /AI_LOG.md
 /.vs/

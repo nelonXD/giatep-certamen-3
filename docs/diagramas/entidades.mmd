@@ -1,0 +1,86 @@
+erDiagram
+  ESTABLECIMIENTOS ||--o{ TRABAJADORES : pertenece
+  ESTABLECIMIENTOS ||--o{ USUARIOS : asigna
+  ESTABLECIMIENTOS ||--o{ CASOS : registra
+  TRABAJADORES ||--o{ CASOS : afecta
+  EMPLEADORES o|--o{ CASOS : emplea
+  CASOS ||--o| DIAT : detalle_accidente
+  CASOS ||--o| DIEP : detalle_enfermedad
+  CASOS ||--o{ MEDIDAS : planifica
+  CASOS ||--o{ CAUSAS : investiga
+  CASOS ||--o{ OBSERVACIONES : coordina
+  CASOS ||--o{ EVIDENCIAS : documenta
+  USUARIOS ||--o{ MEDIDAS : responsabiliza
+  USUARIOS ||--o{ OBSERVACIONES : escribe
+  USUARIOS ||--o{ EVIDENCIAS : adjunta
+  ESTABLECIMIENTOS {
+    uuid Id PK
+    string Nombre UK
+  }
+  TRABAJADORES {
+    uuid Id PK
+    string Codigo UK
+    uuid EstablecimientoId FK
+  }
+  USUARIOS {
+    uuid Id PK
+    string Cuenta UK
+    uuid EstablecimientoId FK
+    string Rol
+  }
+  CASOS {
+    uuid Id PK
+    string Codigo UK
+    uuid EstablecimientoId FK
+    uuid TrabajadorId FK
+    uuid EmpleadorId FK
+    date FechaEmision
+    string CodigoOrganismo
+    string Folio
+  }
+  EMPLEADORES {
+    uuid Id PK
+    string Rut UK
+    string Nombre
+  }
+  DIAT {
+    uuid Id PK
+    uuid CasoId FK,UK
+    time HoraAccidente
+    string AccidenteDireccion
+    string TipoAccidente
+    string TipoTrayecto
+  }
+  DIEP {
+    uuid Id PK
+    uuid CasoId FK,UK
+    int DuracionSintomas
+    string ParteCuerpo
+    string Agentes
+    int TiempoExposicion
+  }
+  MEDIDAS {
+    uuid Id PK
+    uuid CasoId FK
+    uuid UsuarioResponsableId FK
+  }
+  CAUSAS {
+    uuid Id PK
+    uuid CasoId FK
+  }
+  OBSERVACIONES {
+    uuid Id PK
+    uuid CasoId FK
+    uuid UsuarioId FK
+  }
+  EVIDENCIAS {
+    uuid Id PK
+    uuid CasoId FK
+    uuid UsuarioId FK
+  }
+  AUDITORIAS {
+    bigint Id PK
+    string RegistroId
+    string Entidad
+    datetime Fecha
+  }

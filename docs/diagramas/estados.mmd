@@ -1,0 +1,6 @@
+stateDiagram-v2
+  [*] --> Borrador
+  Borrador --> Investigacion: Prevención inicia
+  Investigacion --> Seguimiento: hay causas y medidas
+  Seguimiento --> Cerrado: todas las medidas completadas
+  Cerrado --> [*]

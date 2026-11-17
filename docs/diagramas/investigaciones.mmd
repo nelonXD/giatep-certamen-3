@@ -1,0 +1,15 @@
+flowchart LR
+  C[Caso registrado] --> I[Iniciar investigación]
+  I --> A[Antecedentes del caso]
+  I --> E[Entrevistas y evidencias]
+  I --> R[Relato final]
+  I --> H[Lista de hechos]
+  H --> T[Árbol de causas manual]
+  T --> M[Medidas vinculadas a hechos]
+  A --> V[Cerrar investigación]
+  E --> V
+  R --> V
+  M --> V
+  V --> P[Iniciar plan de acción]
+  P --> S[Cumplir medidas]
+  S --> F[Cerrar caso]

@@ -1,0 +1,8 @@
+flowchart LR
+  N[Navegador] --> V[Vite local 5173]
+  V --> A[API local 5080]
+  A --> S[(SQL Express GiatepDB)]
+  A --> F[Configuración privada .env]
+  P[Producción propuesta HTTPS] --> W[Proxy y web estática]
+  W --> Q[Servicio ASP.NET Core privado]
+  Q --> R[(SQL Server privado)]
