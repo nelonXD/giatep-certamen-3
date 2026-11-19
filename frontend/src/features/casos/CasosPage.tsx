@@ -219,37 +219,17 @@ function CasoForm({ options, caso, tipoNuevo }: { options: Opciones; caso?: Caso
         <p className="subtitle">Completa la denuncia {formulario}. Los campos con * son obligatorios.</p>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-        <div className="casos-mode-pills" role="group" aria-label="Modo de formulario" style={{ display: 'inline-flex', background: '#f1f5f9', padding: '3px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+        <div className="casos-mode-pills" role="group" aria-label="Modo de formulario">
           <button
             type="button"
-            style={{
-              padding: '6px 14px',
-              borderRadius: '6px',
-              border: 'none',
-              fontSize: '12px',
-              fontWeight: 600,
-              background: modo === 'pasos' ? '#ffffff' : 'transparent',
-              color: modo === 'pasos' ? '#0f2942' : '#475569',
-              boxShadow: modo === 'pasos' ? '0 1px 3px rgba(15, 23, 42, 0.1)' : 'none',
-              cursor: 'pointer'
-            }}
+            className={`casos-mode-pill-btn ${modo === 'pasos' ? 'active' : ''}`}
             onClick={() => { setModo('pasos'); localStorage.setItem('giatep_modo_registro', 'pasos'); }}
           >
             ✦ Asistente por partes
           </button>
           <button
             type="button"
-            style={{
-              padding: '6px 14px',
-              borderRadius: '6px',
-              border: 'none',
-              fontSize: '12px',
-              fontWeight: 600,
-              background: modo === 'completo' ? '#ffffff' : 'transparent',
-              color: modo === 'completo' ? '#0f2942' : '#475569',
-              boxShadow: modo === 'completo' ? '0 1px 3px rgba(15, 23, 42, 0.1)' : 'none',
-              cursor: 'pointer'
-            }}
+            className={`casos-mode-pill-btn ${modo === 'completo' ? 'active' : ''}`}
             onClick={() => { setModo('completo'); localStorage.setItem('giatep_modo_registro', 'completo'); }}
           >
             📄 Formulario continuo

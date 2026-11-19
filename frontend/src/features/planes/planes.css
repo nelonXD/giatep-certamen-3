@@ -87,6 +87,12 @@
   border-color: #065f46;
 }
 
+:root[data-theme='dark'] .plan-status-badge.status-PorIniciar {
+  background: #1e293b;
+  color: #cbd5e1;
+  border-color: #334155;
+}
+
 .plan-meta-row {
   display: flex;
   align-items: center;
@@ -237,6 +243,40 @@
   font-weight: 700;
   line-height: 1.2;
   margin: 0;
+  color: var(--text-primary);
+}
+
+.plan-kpi-number.success { color: #047857; }
+.plan-kpi-number.info { color: #0284c7; }
+.plan-kpi-number.warning { color: #b45309; }
+.plan-kpi-number.danger { color: #b91c1c; }
+
+:root[data-theme='dark'] .plan-kpi-number.success { color: #34d399; }
+:root[data-theme='dark'] .plan-kpi-number.info { color: #38bdf8; }
+:root[data-theme='dark'] .plan-kpi-number.warning { color: #fbbf24; }
+:root[data-theme='dark'] .plan-kpi-number.danger { color: #f87171; }
+
+.plan-text-danger { color: #b91c1c; }
+.plan-text-warning { color: #b45309; }
+:root[data-theme='dark'] .plan-text-danger { color: #f87171; }
+:root[data-theme='dark'] .plan-text-warning { color: #fbbf24; }
+
+.plan-table-pending { color: var(--secondary); font-weight: 600; }
+.plan-table-overdue { color: #b91c1c; font-weight: 700; }
+:root[data-theme='dark'] .plan-table-overdue { color: #f87171; }
+
+.plan-table-progress-fill {
+  background: #0284c7;
+  transition: width 0.3s ease;
+}
+.plan-table-progress-fill.complete {
+  background: #10b981;
+}
+:root[data-theme='dark'] .plan-table-progress-fill {
+  background: #38bdf8;
+}
+:root[data-theme='dark'] .plan-table-progress-fill.complete {
+  background: #34d399;
 }
 
 .plan-kpi-label {
@@ -316,6 +356,20 @@
 .plan-filter-chip.active .count {
   background: rgba(255, 255, 255, 0.25);
   color: inherit;
+}
+
+:root[data-theme='dark'] .plan-filter-chip .count {
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+}
+
+.plan-filter-chip.chip-vencidas {
+  border-color: #f87171;
+}
+
+:root[data-theme='dark'] .plan-filter-chip.chip-vencidas {
+  border-color: #ef4444;
+  color: #fca5a5;
 }
 
 /* ------------------------------------------------------------------------------

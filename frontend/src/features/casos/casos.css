@@ -531,3 +531,134 @@
     padding: 14px;
   }
 }
+
+/* ==========================================================================
+   7. SELECTOR DE MODO ASISTENTE / CONTINUO & MODO OSCURO
+   ========================================================================== */
+.casos-mode-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.casos-mode-pill-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--casos-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.casos-mode-pill-btn.active {
+  background: #ffffff;
+  color: var(--casos-navy-900);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+}
+
+:root[data-theme='dark'] .casos-mode-pills {
+  background: #142337;
+  border-color: var(--casos-border);
+}
+
+:root[data-theme='dark'] .casos-mode-pill-btn {
+  color: var(--casos-text-muted);
+}
+
+:root[data-theme='dark'] .casos-mode-pill-btn.active {
+  background: var(--casos-surface);
+  color: var(--casos-text-strong);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme='dark'] .casos-tabs-bar {
+  background: #142337;
+  border-color: var(--casos-border);
+}
+
+:root[data-theme='dark'] .casos-tab-btn {
+  color: var(--casos-text-muted);
+}
+
+:root[data-theme='dark'] .casos-tab-btn:hover {
+  color: var(--casos-navy-950);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme='dark'] .casos-tab-btn[aria-pressed='true'] {
+  background: var(--casos-surface);
+  color: var(--casos-navy-950);
+  border-color: var(--casos-border);
+}
+
+:root[data-theme='dark'] .casos-tab-pill {
+  background: #253a50;
+  color: #a5ddfb;
+}
+
+:root[data-theme='dark'] .casos-tab-btn[aria-pressed='true'] .casos-tab-pill {
+  background: var(--casos-cyan-light);
+  color: var(--casos-primary);
+}
+
+:root[data-theme='dark'] .casos-alert-banner {
+  background: linear-gradient(135deg, #132437 0%, #17334b 100%);
+  border-color: #2b3d52;
+  border-left-color: var(--casos-primary);
+}
+
+:root[data-theme='dark'] .casos-list-header {
+  background: var(--casos-surface);
+  border-color: var(--casos-border);
+}
+
+:root[data-theme='dark'] .casos-counter-pill,
+:root[data-theme='dark'] .casos-badge-code {
+  background: #17283b;
+  border-color: var(--casos-border);
+  color: var(--casos-text-strong);
+}
+
+:root[data-theme='dark'] .casos-table thead tr {
+  background: #17283b;
+  border-color: var(--casos-border);
+}
+
+:root[data-theme='dark'] .casos-table th {
+  color: var(--casos-text-muted);
+}
+
+:root[data-theme='dark'] .casos-table tbody tr {
+  border-color: var(--casos-border-subtle);
+}
+
+:root[data-theme='dark'] .casos-table tbody tr:hover {
+  background-color: #17283b;
+}
+
+:root[data-theme='dark'] .badge-dot.Borrador {
+  background: #26384b;
+  color: #dce7f2;
+}
+
+:root[data-theme='dark'] .badge-dot.EnInvestigacion {
+  background: #17364c;
+  color: #a5ddfb;
+}
+
+:root[data-theme='dark'] .badge-dot.EnSeguimiento {
+  background: #3a2d17;
+  color: #ffd889;
+}
+
+:root[data-theme='dark'] .badge-dot.Cerrado {
+  background: #173a32;
+  color: #8ce3bf;
+}

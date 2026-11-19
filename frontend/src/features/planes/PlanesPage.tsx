@@ -198,10 +198,10 @@ function Listado({ soloMios = false }: { soloMios?: boolean }) {
                                 }}
                               >
                                 <div
+                                  className={`plan-table-progress-fill ${pct === 100 ? 'complete' : ''}`}
                                   style={{
                                     width: `${pct}%`,
                                     height: '100%',
-                                    background: pct === 100 ? '#10b981' : '#0284c7',
                                     borderRadius: 4
                                   }}
                                 />
@@ -213,14 +213,14 @@ function Listado({ soloMios = false }: { soloMios?: boolean }) {
                           </td>
                           <td>
                             {p.porRevisar > 0 ? (
-                              <span style={{ color: 'var(--secondary)', fontWeight: 600 }}>{p.porRevisar} pendientes</span>
+                              <span className="plan-table-pending">{p.porRevisar} pendientes</span>
                             ) : (
                               '0'
                             )}
                           </td>
                           <td>
                             {p.vencidas > 0 ? (
-                              <span style={{ color: '#dc2626', fontWeight: 700 }}>⚠️ {p.vencidas} vencidas</span>
+                              <span className="plan-table-overdue">⚠️ {p.vencidas} vencidas</span>
                             ) : (
                               '0'
                             )}
@@ -379,7 +379,7 @@ function Detalle({ id }: { id: string }) {
               <CheckCircle2 size={18} />
             </span>
           </div>
-          <p className="plan-kpi-number" style={{ color: '#059669' }}>
+          <p className="plan-kpi-number success">
             {verificadas}
           </p>
           <small className="help">Aprobadas por Prevención</small>
@@ -393,7 +393,7 @@ function Detalle({ id }: { id: string }) {
               <Clock size={18} />
             </span>
           </div>
-          <p className="plan-kpi-number" style={{ color: '#0284c7' }}>
+          <p className="plan-kpi-number info">
             {porVerificar}
           </p>
           <small className="help">Con evidencia esperando revisión</small>
@@ -407,14 +407,14 @@ function Detalle({ id }: { id: string }) {
               <AlertTriangle size={18} />
             </span>
           </div>
-          <p className="plan-kpi-number" style={{ color: vencidas > 0 ? '#dc2626' : '#d97706' }}>
+          <p className={`plan-kpi-number ${vencidas > 0 ? 'danger' : 'warning'}`}>
             {pendientes + devueltas}
           </p>
           <small className="help">
             {vencidas > 0 ? (
-              <strong style={{ color: '#dc2626' }}>⚠️ {vencidas} con plazo vencido</strong>
+              <strong className="plan-text-danger">⚠️ {vencidas} con plazo vencido</strong>
             ) : devueltas > 0 ? (
-              <strong style={{ color: '#d97706' }}>{devueltas} devuelta(s) para corregir</strong>
+              <strong className="plan-text-warning">{devueltas} devuelta(s) para corregir</strong>
             ) : (
               'En fase de implementación'
             )}
@@ -492,8 +492,7 @@ function Detalle({ id }: { id: string }) {
             {vencidas > 0 && (
               <button
                 type="button"
-                className={`plan-filter-chip ${filtro === 'Vencidas' ? 'active' : ''}`}
-                style={{ borderColor: '#ef4444' }}
+                className={`plan-filter-chip chip-vencidas ${filtro === 'Vencidas' ? 'active' : ''}`}
                 onClick={() => setFiltro('Vencidas')}
               >
                 ⚠️ Vencidas <span className="count">{vencidas}</span>

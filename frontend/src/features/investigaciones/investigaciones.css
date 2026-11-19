@@ -65,3 +65,154 @@
 .investigation-workspace .observation { background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:20px; }
 @media(max-width:1100px) { .investigation-summary { grid-template-columns:1fr 1fr; } .investigation-progress { border-bottom:1px solid #e2e8f0; } .investigation-metric:nth-child(2) { border-bottom:1px solid #e2e8f0; } .investigation-metric:nth-child(3) { border-left:0; } }
 @media(max-width:600px) { .investigation-heading h1 { font-size:23px; } .investigation-heading .subtitle { gap:8px; flex-direction:column; } .investigation-summary { grid-template-columns:1fr; } .investigation-metric { border-left:0; border-top:1px solid #e2e8f0; padding:14px 18px; } .investigation-metric:nth-child(2) { border-bottom:0; border-top:0; } .investigation-progress { padding:18px; } .investigation-section-heading { align-items:flex-start; gap:10px; flex-wrap:wrap; } .investigation-count { margin-left:0; } .investigation-section-heading h2 { font-size:18px; } .investigation-workspace .measure-form,.investigation-workspace .ocr-comparison { padding:14px; } .investigation-workspace .investigation-evidence { flex-wrap:wrap; } .investigation-file-info { flex-basis:calc(100% - 60px); } .investigation-workspace .investigation-evidence > button { margin-left:56px; } .investigation-workspace .ocr-accordion > summary { padding:14px; flex-wrap:wrap; } .investigation-optional { display:none; } .investigation-empty { padding:18px; } }
+
+/* ==============================================================================
+   Modo Oscuro para Investigaciones
+   ============================================================================== */
+:root[data-theme='dark'] .investigation-workspace {
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .investigation-breadcrumb {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .investigation-breadcrumb a {
+  color: var(--secondary-light);
+}
+
+:root[data-theme='dark'] .investigation-heading h1 {
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .investigation-heading .subtitle {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .investigation-metric {
+  background: var(--surface-card);
+  border-color: var(--line);
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .investigation-metric small {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .investigation-metric-icon,
+:root[data-theme='dark'] .investigation-section-icon,
+:root[data-theme='dark'] .investigation-file-icon,
+:root[data-theme='dark'] .investigation-scan-icon {
+  background: #17364c;
+  color: #67c9f5;
+}
+
+:root[data-theme='dark'] .investigation-tabs button {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .investigation-tabs button.selected {
+  background: #17364c;
+  color: #a5ddfb;
+  border-bottom-color: #55b9ed;
+}
+
+:root[data-theme='dark'] .investigation-step {
+  background: #26384b;
+  color: #dce7f2;
+}
+
+:root[data-theme='dark'] .investigation-step.complete {
+  background: #133327;
+  color: #45c99a;
+  border-color: #065f46;
+}
+
+:root[data-theme='dark'] .investigation-section-heading h2 {
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .investigation-section-heading .eyebrow {
+  color: var(--secondary-light);
+}
+
+:root[data-theme='dark'] .investigation-count {
+  background: #17283b;
+  border-color: var(--line);
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .investigation-workspace .investigation-evidence {
+  background: var(--surface-card);
+  border-color: var(--line);
+}
+
+:root[data-theme='dark'] .investigation-file-info strong {
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .investigation-file-info p {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .investigation-empty {
+  background: #142235;
+  border-color: var(--line-strong);
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .investigation-empty strong {
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .investigation-empty p {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .investigation-workspace .measure-form {
+  background: #142235;
+  border-color: var(--line);
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .investigation-workspace .ocr-accordion {
+  background: var(--surface-card);
+  border-color: var(--line);
+}
+
+:root[data-theme='dark'] .investigation-workspace .ocr-accordion > summary {
+  background: #142b40;
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .investigation-workspace .ocr-accordion > summary small {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .investigation-optional {
+  color: var(--secondary-light);
+}
+
+:root[data-theme='dark'] .investigation-workspace .ocr-accordion .measure-form {
+  background: #111e2d;
+}
+
+:root[data-theme='dark'] .investigation-workspace .ocr-comparison {
+  background: #142235;
+  border-color: var(--line);
+}
+
+:root[data-theme='dark'] .investigation-workspace .investigation-governance {
+  background: #142235;
+}
+
+:root[data-theme='dark'] .investigation-workspace .research-facts {
+  background: #142235;
+  border-color: var(--line);
+}
+
+:root[data-theme='dark'] .investigation-workspace .observation {
+  background: #142235;
+  border-color: var(--line);
+  color: var(--text-primary);
+}

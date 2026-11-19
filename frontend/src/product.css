@@ -870,3 +870,17 @@ td > .row-link { margin-right: 12px; }
 :root[data-theme='dark'] .ocr-preview-page { background: #e9edf2; color: #17202b; }
 :root[data-theme='dark'] .ocr-layout-canvas { background: #182638; }
 :root[data-theme='dark'] .evidence-ai-note { background: #173047; color: #d8efff; border-color: #28516b; }
+:root[data-theme='dark'] .antecedentes-icon { background: #17364c; color: #67c9f5; }
+:root[data-theme='dark'] .antecedentes-story { background: #142235; border-left-color: #67c9f5; }
+:root[data-theme='dark'] .antecedentes-story > p:last-child { color: var(--text-primary); }
+:root[data-theme='dark'] .antecedentes-identity h3 { color: var(--text-primary); }
+:root[data-theme='dark'] .antecedentes-additional > summary { color: var(--text-primary); }
+:root[data-theme='dark'] .investigation-checks strong { color: var(--text-primary); }
+:root[data-theme='dark'] .investigation-checks span { color: var(--text-primary); }
+:root[data-theme='dark'] .investigation-checks small { color: var(--text-secondary); }
+:root[data-theme='dark'] .evidence-options > button { background: #111e2d; border-color: var(--line); color: var(--text-secondary); }
+:root[data-theme='dark'] .evidence-options > button strong { color: var(--text-primary); }
+:root[data-theme='dark'] .evidence-options > button small { color: var(--text-secondary); }
+:root[data-theme='dark'] .evidence-options > button.selected { background: #17364c; border-color: #55b9ed; color: #ffffff; box-shadow: 0 0 0 1px #55b9ed; }
+:root[data-theme='dark'] .evidence-options > button.selected strong { color: #ffffff; }
+:root[data-theme='dark'] .evidence-options > button.selected small { color: #dce7f2; }

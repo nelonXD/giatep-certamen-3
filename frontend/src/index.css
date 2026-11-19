@@ -882,6 +882,92 @@ td small {
 :root[data-theme='dark'] .admin-workspace .admin-table tbody tr:hover { background: #17283b; }
 :root[data-theme='dark'] .casos-workspace :is(.casos-badge-institutional, .casos-counter-pill, .casos-filter-deck, .casos-tab-pill, .casos-tab-btn) { color: #a5ddfb; }
 
+/* Universal dark theme heading text adaptation */
+:root[data-theme='dark'] :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--text-primary);
+}
+
+/* Universal button adaptations */
+:root[data-theme='dark'] .primary {
+  background: #0284c7;
+  color: #ffffff;
+  border: 1px solid #0284c7;
+}
+:root[data-theme='dark'] .primary:hover:not(:disabled) {
+  background: #0369a1;
+  border-color: #0369a1;
+}
+:root[data-theme='dark'] .secondary {
+  background: #17283b;
+  color: #e8eef5;
+  border-color: #2b3d52;
+}
+:root[data-theme='dark'] .secondary:hover:not(:disabled) {
+  background: #1e334d;
+  color: #ffffff;
+  border-color: #55b9ed;
+}
+
+/* Universal table case codes and mono highlights */
+:root[data-theme='dark'] td strong {
+  color: var(--secondary-light);
+}
+
+/* Universal empty states */
+:root[data-theme='dark'] .empty h3 {
+  color: var(--text-primary);
+}
+:root[data-theme='dark'] .empty {
+  color: var(--text-secondary);
+}
+
+/* Universal notices and alerts */
+:root[data-theme='dark'] :is(.message.error, .error) {
+  background: #3d2028;
+  color: #ffb0b7;
+  border-color: #7c3844;
+}
+:root[data-theme='dark'] :is(.message.success, .success) {
+  background: #12382f;
+  color: #91e8c4;
+  border-color: #2d6a52;
+}
+:root[data-theme='dark'] .dev-notice {
+  background: #3a2d17;
+  color: #ffd889;
+  border-color: #6e5428;
+}
+:root[data-theme='dark'] .case-review-notice {
+  background: #142b40;
+  color: #dce7f2;
+  border-color: #31516b;
+}
+
+/* Universal filters panel */
+:root[data-theme='dark'] .filters {
+  background: #142337;
+  border-bottom-color: var(--line);
+}
+
+/* Universal case wizard steps */
+:root[data-theme='dark'] .case-steps button {
+  color: var(--text-secondary);
+}
+:root[data-theme='dark'] .case-steps button > span {
+  background: var(--surface-card);
+  border-color: var(--line);
+  color: var(--text-primary);
+}
+:root[data-theme='dark'] .case-steps .current button {
+  color: #ffffff;
+  background: #1e3a5a;
+}
+:root[data-theme='dark'] .case-steps .current span {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
 /* Keep the overscroll canvas aligned with the active page theme. */
 html,
 body,
