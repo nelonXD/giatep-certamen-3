@@ -1,0 +1,777 @@
+/* ==============================================================================
+   GIATEP - Plan de Acción (Horizon UI / Prevención de Riesgos S&SO)
+   Estilos específicos para el seguimiento y verificación de medidas
+   ============================================================================== */
+
+.plan-workspace {
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------------------
+   1. Encabezado y Navegación Rápida
+   ------------------------------------------------------------------------------ */
+.plan-header {
+  margin-bottom: 24px;
+}
+
+.plan-header .eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  text-transform: uppercase;
+  margin: 0 0 4px;
+}
+
+.plan-header-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.plan-header-title-row h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.plan-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--text-primary);
+  border: 1px solid var(--line-strong);
+}
+
+.plan-status-badge.status-EnSeguimiento {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.plan-status-badge.status-Cerrado {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.plan-status-badge.status-PorIniciar {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+:root[data-theme='dark'] .plan-status-badge.status-EnSeguimiento {
+  background: #3b2d14;
+  color: #fde68a;
+  border-color: #78350f;
+}
+
+:root[data-theme='dark'] .plan-status-badge.status-Cerrado {
+  background: #133327;
+  color: #a7f3d0;
+  border-color: #065f46;
+}
+
+.plan-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.plan-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ------------------------------------------------------------------------------
+   2. Resumen Ejecutivo de Métricas (KPI Summary Grid)
+   ------------------------------------------------------------------------------ */
+.plan-kpi-grid {
+  display: grid;
+  grid-template-columns: 1.6fr repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.plan-kpi-card {
+  background: var(--surface-card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.plan-kpi-card.hero {
+  background: linear-gradient(135deg, var(--surface-card) 0%, var(--surface-container-low) 100%);
+  border-color: var(--line-strong);
+}
+
+.plan-kpi-hero-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.plan-kpi-hero-header .hero-pct {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+
+:root[data-theme='dark'] .plan-kpi-hero-header .hero-pct {
+  color: var(--secondary-light);
+}
+
+.plan-kpi-hero-header .hero-sub {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.plan-progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--surface-container);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 10px 0 8px;
+}
+
+.plan-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7 0%, #10b981 100%);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.plan-kpi-hero-footer {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.plan-kpi-stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.plan-kpi-stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plan-kpi-stat-icon.success {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.plan-kpi-stat-icon.info {
+  background: #eff6ff;
+  color: #0284c7;
+}
+
+.plan-kpi-stat-icon.warning {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.plan-kpi-stat-icon.danger {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+:root[data-theme='dark'] .plan-kpi-stat-icon.success {
+  background: #133327;
+  color: #45c99a;
+}
+
+:root[data-theme='dark'] .plan-kpi-stat-icon.info {
+  background: #17334b;
+  color: #67c9f5;
+}
+
+:root[data-theme='dark'] .plan-kpi-stat-icon.warning {
+  background: #3b2d14;
+  color: #f5b942;
+}
+
+:root[data-theme='dark'] .plan-kpi-stat-icon.danger {
+  background: #3d2028;
+  color: #ff7b86;
+}
+
+.plan-kpi-number {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.plan-kpi-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 4px 0 0;
+  font-weight: 500;
+}
+
+/* ------------------------------------------------------------------------------
+   3. Barra de Filtros por Pastillas (Filter Chips)
+   ------------------------------------------------------------------------------ */
+.plan-filter-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--surface-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin-bottom: 24px;
+}
+
+.plan-filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-right: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--line);
+  transition: all 0.2s ease;
+}
+
+.plan-filter-chip:hover {
+  background: var(--surface-container);
+  color: var(--text-primary);
+}
+
+.plan-filter-chip.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+:root[data-theme='dark'] .plan-filter-chip.active {
+  background: var(--secondary-light);
+  color: #0b1420;
+  border-color: var(--secondary-light);
+}
+
+.plan-filter-chip .count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.plan-filter-chip.active .count {
+  background: rgba(255, 255, 255, 0.25);
+  color: inherit;
+}
+
+/* ------------------------------------------------------------------------------
+   4. Tarjeta de Medida Preventiva Rediseñada (.measure-card)
+   ------------------------------------------------------------------------------ */
+.measure-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.measure-card {
+  background: var(--surface-card);
+  border: 1px solid var(--line);
+  border-left: 5px solid #94a3b8;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.measure-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Estados visuales con color de borde izquierdo y acento */
+.measure-card.status-verificada {
+  border-left-color: #10b981;
+}
+
+.measure-card.status-por-verificar {
+  border-left-color: #0284c7;
+}
+
+.measure-card.status-devuelta {
+  border-left-color: #f59e0b;
+}
+
+.measure-card.status-vencida {
+  border-left-color: #ef4444;
+}
+
+/* Cabecera de la medida */
+.measure-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.measure-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.measure-idx-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--surface-container);
+  color: var(--text-secondary);
+  border: 1px solid var(--line);
+}
+
+.measure-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.measure-status-pill.verificada {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.measure-status-pill.por-verificar {
+  background: #eff6ff;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+.measure-status-pill.devuelta {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.measure-status-pill.pendiente {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.measure-status-pill.vencida {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+:root[data-theme='dark'] .measure-status-pill.verificada {
+  background: #133327;
+  color: #45c99a;
+  border-color: #065f46;
+}
+
+:root[data-theme='dark'] .measure-status-pill.por-verificar {
+  background: #17334b;
+  color: #67c9f5;
+  border-color: #1a4f75;
+}
+
+:root[data-theme='dark'] .measure-status-pill.devuelta {
+  background: #3b2d14;
+  color: #f5b942;
+  border-color: #78350f;
+}
+
+:root[data-theme='dark'] .measure-status-pill.pendiente {
+  background: #1e293b;
+  color: #cbd5e1;
+  border-color: #334155;
+}
+
+:root[data-theme='dark'] .measure-status-pill.vencida {
+  background: #3d2028;
+  color: #ff7b86;
+  border-color: #7f1d1d;
+}
+
+/* Descripción de la medida (la acción principal) */
+.measure-desc {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+/* Caja de causa raíz investigada (Hecho causal antecedente) */
+.measure-cause-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--surface-container-low);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  font-size: 13px;
+}
+
+.measure-cause-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: var(--secondary);
+  margin-top: 1px;
+}
+
+.measure-cause-content strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--secondary);
+  margin-bottom: 2px;
+}
+
+.measure-cause-content p {
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+/* Metadatos: Responsable y Plazo */
+.measure-meta-strip {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  border: 1px solid var(--line);
+}
+
+.measure-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-secondary);
+}
+
+.measure-meta-item strong {
+  color: var(--text-primary);
+}
+
+.measure-meta-item.overdue {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+:root[data-theme='dark'] .measure-meta-item.overdue {
+  color: #ff7b86;
+}
+
+/* Bloques de ciclo de vida: Implementación y Revisión */
+.measure-feedback-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.measure-feedback-box {
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 13px;
+  border: 1px solid var(--line);
+}
+
+.measure-feedback-box.implementation {
+  background: #f8fafc;
+  border-left: 4px solid #0284c7;
+}
+
+.measure-feedback-box.review-approved {
+  background: #ecfdf5;
+  border-left: 4px solid #10b981;
+}
+
+.measure-feedback-box.review-rejected {
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
+}
+
+:root[data-theme='dark'] .measure-feedback-box.implementation {
+  background: #142235;
+  border-left-color: #67c9f5;
+}
+
+:root[data-theme='dark'] .measure-feedback-box.review-approved {
+  background: #133327;
+  border-left-color: #45c99a;
+}
+
+:root[data-theme='dark'] .measure-feedback-box.review-rejected {
+  background: #3b2d14;
+  border-left-color: #f5b942;
+}
+
+.measure-feedback-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.measure-feedback-header span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.measure-feedback-header small {
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.measure-feedback-text {
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+/* Evidencias de cumplimiento */
+.measure-evidence-section {
+  margin-bottom: 20px;
+}
+
+.measure-evidence-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.measure-evidence-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.measure-evidence-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.measure-evidence-file-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.measure-evidence-file-info strong {
+  font-size: 13px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.measure-evidence-file-info small {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Formularios de entrega y verificación integrados */
+.measure-action-form-wrap {
+  background: var(--surface-container-low);
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-top: 16px;
+}
+
+.measure-action-form-wrap h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--text-primary);
+}
+
+.measure-action-form-wrap .measure-form {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  margin: 0;
+}
+
+/* Sección de Cierre del Plan y Caso */
+.plan-close-card {
+  background: linear-gradient(135deg, #ecfdf5 0%, var(--surface-card) 100%);
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+:root[data-theme='dark'] .plan-close-card {
+  background: linear-gradient(135deg, #133327 0%, var(--surface-card) 100%);
+  border-color: #065f46;
+}
+
+.plan-close-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.plan-close-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #10b981;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.plan-close-content h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+
+.plan-close-content p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ------------------------------------------------------------------------------
+   5. Adaptabilidad Responsive
+   ------------------------------------------------------------------------------ */
+@media (max-width: 1024px) {
+  .plan-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .plan-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .measure-card {
+    padding: 16px;
+  }
+  .measure-desc {
+    font-size: 15px;
+  }
+  .measure-evidence-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .measure-evidence-item button {
+    width: 100%;
+  }
+  .plan-close-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .plan-close-card button {
+    width: 100%;
+  }
+}
