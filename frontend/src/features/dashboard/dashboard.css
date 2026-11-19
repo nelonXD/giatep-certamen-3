@@ -1391,6 +1391,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .dash-center-count {
@@ -1911,7 +1912,7 @@
    ========================================================================== */
 .dash-closure {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 20px;
 }
 
@@ -2138,27 +2139,26 @@
   margin: 12px 0 0;
 }
 
-/* ==========================================================================
-   8. RESPONSIVIDAD TOTAL (360px, 768px, 1100px, 1440px) - Sin scroll horizontal
-   ========================================================================== */
-@media (max-width: 1100px) {
-  .dash-kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .dash-primary-charts,
-  .dash-secondary-charts,
-  .dash-horizon-grid,
-  .dash-dashboard-flow {
-    grid-template-columns: 1fr;
-  }
-}
-
 .dash-dashboard-flow {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr);
   gap: 20px;
   align-items: stretch;
+}
+
+.dash-dashboard-flow .dash-next-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.dash-dashboard-flow .dash-next-step a.secondary {
+  align-self: flex-start;
+  margin-top: auto;
 }
 
 .dash-kpi-link { margin-top: auto; }
@@ -2260,19 +2260,61 @@
 :root[data-theme='dark'] .dash-workspace .dash-filter-actions .dash-reset-filters { background: #17283b; color: #dce7f2; border-color: #42566c; }
 .dash-next-step { min-width: 0; }
 
+/* ==========================================================================
+   8. RESPONSIVIDAD TOTAL (360px, 768px, 1100px, 1440px) - Sin scroll horizontal
+   ========================================================================== */
 @media (max-width: 1100px) {
-  .dash-dashboard-flow { grid-template-columns: 1fr; }
-  .dash-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+  .dash-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dash-primary-charts,
+  .dash-secondary-charts,
+  .dash-horizon-grid,
+  .dash-dashboard-flow {
+    grid-template-columns: 1fr;
+  }
+  .dash-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
   .dash-overview-left { grid-column: 1; grid-row: 1; }
   .dash-overview-right { grid-column: 2; grid-row: 1; }
-  .dash-overview > .dash-chart-donut { grid-column: 1 / -1; grid-row: 2; width: min(100%, 760px); justify-self: center; }
+  .dash-overview > .dash-chart-donut {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: min(100%, 760px);
+    justify-self: center;
+  }
+  .dash-dashboard-flow .dash-next-step {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dash-dashboard-flow .dash-next-step a.secondary {
+    margin-top: 0;
+  }
 }
 
-@media (max-width: 700px) {
-  .dash-overview { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 860px) {
+  .dash-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .dash-overview-left { grid-column: 1; grid-row: 1; }
   .dash-overview-right { grid-column: 1; grid-row: 2; }
   .dash-overview > .dash-chart-donut { grid-column: 1; grid-row: 3; }
+  .dash-closure {
+    grid-template-columns: 1fr;
+  }
+  .dash-priority,
+  .dash-dashboard-flow .dash-next-step {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .dash-priority a.secondary,
+  .dash-dashboard-flow .dash-next-step a.secondary {
+    align-self: flex-start;
+    margin-top: 12px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -2312,19 +2354,6 @@
   .dash-kpis {
     grid-template-columns: 1fr;
   }
-
-  .dash-closure {
-    grid-template-columns: 1fr;
-  }
-
-  .dash-priority {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .dash-priority a.secondary {
-    align-self: flex-start;
-  }
 }
 
 @media (max-width: 480px) {
@@ -2340,5 +2369,10 @@
 
   .dash-interactive-legend {
     grid-template-columns: 1fr;
+  }
+
+  .dash-center-topline {
+    flex-wrap: wrap;
+    gap: 4px;
   }
 }

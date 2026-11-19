@@ -357,11 +357,11 @@ summary { cursor: pointer; }
   .sidebar { width: 220px; }
   .login-box { padding: 36px 24px; }
 }
-@media(max-width: 700px) {
+@media(max-width: 860px) {
   .sidebar { width: 100%; flex-wrap: wrap; }
   .sidebar .navigation { display: none; width: 100%; }
   .sidebar .navigation.open { display: grid; }
-  .mobile-toggle { display: flex; background: #001428; color: white; width: 40px; height: 40px; border-radius: 8px; }
+  .mobile-toggle { display: flex; align-items: center; justify-content: center; background: #001428; color: white; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.15); }
   .sidebar .nav-title { display: block; margin: 10px 0; }
   .sidebar .nav-item { width: 100%; }
   .kpi-grid { gap: 12px; }
@@ -427,7 +427,7 @@ summary { cursor: pointer; }
 }
 .research-facts dt { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #64748b; margin-bottom: 6px; }
 .research-facts dd { font-size: 14px; margin: 0; overflow-wrap: anywhere; color: #0f172a; }
-@media(max-width: 700px) {
+@media(max-width: 860px) {
   .research-facts { grid-template-columns: 1fr; }
   .tree-scroll { max-height: 500px; }
 }
@@ -446,7 +446,7 @@ summary { cursor: pointer; }
 .admin-sidebar { overflow-y: auto; }
 .admin-sidebar .navigation .nav-title { margin-top: 24px; }
 .admin-sidebar .sidebar-note { padding-top: 20px; padding-bottom: 20px; }
-@media(max-width: 700px) {
+@media(max-width: 860px) {
   .admin-sidebar { overflow: visible; }
   .navigation .nav-section-title { margin-top: 14px; }
   .admin-sidebar .navigation .nav-title { margin-top: 10px; }
@@ -484,7 +484,7 @@ summary { cursor: pointer; }
 .role-summary li svg { flex-shrink: 0; margin-top: 2px; color: #059669; }
 .role-summary p { font-size: 12px; line-height: 1.6; margin: 8px 0 0; color: #64748b; }
 @media(max-width: 1000px) { .role-options { grid-template-columns: 1fr; } }
-@media(max-width: 700px) { .role-summary ul { grid-template-columns: 1fr; } .role-option { padding: 14px; } .role-summary { padding: 14px; } }
+@media(max-width: 860px) { .role-summary ul { grid-template-columns: 1fr; } .role-option { padding: 14px; } .role-summary { padding: 14px; } }
 
 .case-type-picker, .denuncia-group { border: 0; padding: 0; margin: 0 0 28px; min-width: 0; }
 .case-type-picker legend, .denuncia-group legend { font-size: 17px; font-weight: 600; margin-bottom: 16px; color: #0f2942; }
@@ -515,7 +515,7 @@ summary { cursor: pointer; }
 .denuncia-summary dd { white-space: pre-wrap; }
 td > .secondary { margin: 4px 0; font-size: 12px; }
 td > .row-link { margin-right: 12px; }
-@media(max-width: 700px) { .case-type-picker > div { grid-template-columns: 1fr; } .case-type-picker label { padding: 14px; } }
+@media(max-width: 860px) { .case-type-picker > div { grid-template-columns: 1fr; } .case-type-picker label { padding: 14px; } }
 
 .case-type-dialog {
   width: min(600px, calc(100vw - 32px));
