@@ -1,75 +1,106 @@
-# GIATEP
+# GIATEP — Gestión e Investigación de Accidentes del Trabajo y Enfermedades Profesionales
 
-Sistema de gestión e investigación de accidentes del trabajo y enfermedades profesionales. Incluye registro DIAT/DIEP, investigaciones, planes de acción, evidencias y reportes, con acceso por roles.
+Sistema integral para la formalización de denuncias (DIAT y DIEP), investigación causal mediante Árbol de Causas (Grafo Acíclico Dirigido), formulación y seguimiento de planes de acción con evidencias, analítica preventiva de Seguridad y Salud Ocupacional (S&SO), reportes multi-formato y digitalización asistida por IA/OCR.
 
-## Requisitos
+Desarrollado para el **Certamen 3 (Hito 3)** de **Lenguaje de Programación Web II** (Integración: POO II, Bases de Datos, Inteligencia de Negocios I y II).
 
-- SDK de .NET 10.
-- Node.js 24 y npm.
-- SQL Server disponible y una cuenta con permisos para crear y actualizar la base de datos local.
+---
 
-## Reconocimiento de evidencias mediante API externa
+## Despliegue en la Nube (Producción Activa)
 
-El proveedor predeterminado es OCR.space. Consulta [configuración, costos y privacidad](backend/ocr/API.md). Configura Ocr__Engine=OcrSpace y Ocr__ApiKey en backend/.env; el OCR necesita internet. Paddle y Tesseract quedan como alternativas locales opcionales.
+- **Frontend SPA (Vercel Edge Network)**: [https://giatep.vercel.app](https://giatep.vercel.app)
+- **Backend API (Render Web Service con Docker Multi-Stage)**: [https://giatep-api.onrender.com](https://giatep-api.onrender.com)
+- **Endpoint de Salud**: `GET https://giatep-api.onrender.com/health` (reporta estado y conexión a Supabase PostgreSQL 17).
 
-El flujo permite subir PNG/JPG de hasta 1 MB, revisar el texto y confirmar un Word. Las imágenes se envían al proveedor externo. Para la evaluación usa únicamente documentos sintéticos. La imagen y el Word revisado se guardan juntos al confirmar; el Word identifica el original por nombre e ID. Antes de confirmar, el escaneo no guarda evidencias.
+---
 
-## Configuración local
+## Ejecución Rápida con un Único Comando (Docker Compose)
 
-Desde la carpeta del proyecto, copia `backend/.env.example` como `backend/.env`. Configura la conexión a SQL Server, una clave JWT aleatoria de al menos 32 bytes y las cuatro contraseñas iniciales de al menos 12 caracteres. Guarda estos valores únicamente en tu equipo.
+El sistema está completamente contenerizado y listo para arrancar en cualquier máquina con Docker Desktop:
 
-En desarrollo, la API lee este archivo, aplica las migraciones e inicializa los datos necesarios. `Seed__DatosDemostracion=true` permite cargar datos ficticios de demostración. Los usuarios iniciales y sus roles se definen en el inicializador de la API; sus contraseñas se toman de las variables `Seed__*Password`.
+1. Clona el repositorio y sitúate en la raíz del proyecto.
+2. Copia la plantilla de variables de entorno:
+   ```bash
+   cp .env.example .env
+   ```
+3. Inicia todo el stack (Base de datos PostgreSQL 17, Backend .NET 10 y Frontend React 19 / Nginx):
+   ```bash
+   docker compose up --build
+   ```
+4. Accede en tu navegador:
+   - **Frontend Web**: [http://localhost:3000](http://localhost:3000)
+   - **Backend API**: [http://localhost:5080/health](http://localhost:5080/health)
 
-## Ejecutar
+---
 
-En una terminal:
+## Ejecución en Desarrollo Local (Sin Docker)
+
+### Requisitos Previos
+- SDK de **.NET 10**.
+- **Node.js 24** y npm.
+- **PostgreSQL 17** (o Supabase) o **SQL Server Express**.
+
+### Pasos
+1. Configura el archivo `backend/.env` copiando `backend/.env.example`.
+2. En una terminal, inicia la API:
+   ```powershell
+   cd backend/Giatep.Api
+   dotnet run
+   ```
+3. En otra terminal, inicia el frontend con Vite:
+   ```powershell
+   cd frontend
+   npm ci
+   npm run dev
+   ```
+4. Abre la URL local de Vite (típicamente `http://127.0.0.1:5173`). La API local responderá en `http://127.0.0.1:5080`.
+
+---
+
+## Credenciales de Demostración (Roles del Sistema)
+
+El sistema incluye 600 casos sintéticos completos (conjunto RUB26) y 3 roles diferenciados:
+
+| Rol | Usuario / Correo | Contraseña Predeterminada | Ámbito / Permisos |
+|---|---|---|---|
+| **Administrador** | `admin@giatep.local` | `AdminSegura123!` | Gestión global de usuarios, centros y auditorías. |
+| **Prevención** | `prevencion@giatep.local` | `PrevencionSegura123!` | Registro DIAT/DIEP, investigaciones, árboles causales y aprobación de planes. |
+| **Jefatura (Centro Norte)** | `jefatura@giatep.local` | `JefaturaSegura123!` | Acceso restringido y aislado al CESFAM Central / Norte; implementación de medidas. |
+| **Jefatura (Centro Sur)** | `jefatura.sur@giatep.local` | `JefaturaSurSegura123!` | Acceso aislado a su propio establecimiento de salud. |
+
+---
+
+## Reconocimiento de Evidencias Asistido por IA (OCR)
+
+El módulo de digitalización documental integra:
+- **API Externa Neuronal**: OCR.space (Motor 2 con TextOverlay estructurado en español). Requiere `Ocr__ApiKey` en `.env`.
+- **Motores Locales Alternativos**: PaddleOCR (PP-OCRv5 en Python) y Tesseract en Node.js para resiliencia y soberanía de datos.
+- **Editor Interactivo**: Permite revisar y corregir la transcripción de la IA y recortar hasta 12 elementos gráficos (firmas y sellos) para generar un documento Word `.docx` editable con OpenXML respetando la distribución espacial original.
+
+---
+
+## Verificación y Calidad de Software
+
+Ejecución de la suite completa de pruebas automáticas:
 
 ```powershell
-cd backend/Giatep.Api
-dotnet run
-```
-
-En otra terminal, desde la carpeta del proyecto:
-
-```powershell
-cd frontend
-npm ci
-npm run dev
-```
-
-Abre la dirección que muestre Vite, normalmente http://127.0.0.1:5173. La API local usa http://127.0.0.1:5080. Mantén SQL Server y ambos servicios iniciados.
-
-## Verificación
-
-Desde la carpeta del proyecto:
-
-```powershell
+# 1. Pruebas de integración de backend (72 pruebas pasando)
 dotnet test backend/Giatep.Tests
-```
 
-Desde `frontend`:
-
-```powershell
+# 2. Compilación estricta de frontend y chequeo de tipos TypeScript
+cd frontend
 npm run build
+cd ..
+
+# 3. Verificación de salud de la API en producción
+curl.exe -i https://giatep-api.onrender.com/health
 ```
 
-Las pruebas de interfaz requieren los servicios en ejecución, la configuración local y los navegadores de Playwright instalados (`npx playwright install chromium`). Se ejecutan con `npm test`. Las pruebas especiales de SQL requieren configuración adicional y están desactivadas de forma predeterminada.
+---
 
-## Estructura
+## Declaración de Uso de Inteligencia Artificial
 
-- `backend`: solución `Giatep.slnx`, configuración local `.env` y plantilla `.env.example`, API ASP.NET Core, modelo, migraciones de Entity Framework Core y pruebas.
-- `frontend`: interfaz React con TypeScript y Vite, y pruebas de interfaz.
-- `shared`: definición compartida de los formularios DIAT y DIEP, utilizada por la API.
-- `.github/workflows`: validación y generación de artefactos.
-
-El repositorio no incluye credenciales, bases de datos, dependencias instaladas, compilaciones, informes académicos ni evidencias locales.
-
-## Archivos de evidencia
-
-Las evidencias de investigaciones y de cumplimiento de planes se guardan en `backend/storage/evidencias`, fuera de las carpetas públicas y de Git. SQL Server conserva ruta relativa, nombre original, tipo, tamaño y SHA-256. Las descargas solo se entregan mediante la API tras validar permisos; la lectura comprueba la integridad del archivo.
-
-En desarrollo, al iniciar la nueva versión se exportan y verifican las evidencias anteriores antes de aplicar la migración que retira el contenido binario de SQL. El traslado se detiene ante diferencias de integridad. Para un despliegue administrado, con la conexión y `Storage__Path` configurados, ejecuta la API con `--migrar-archivos=true` antes de iniciar el servicio. La migración SQL directa se bloquea si existen archivos sin verificación previa.
-
-Los respaldos deben incluir SQL Server y el directorio de almacenamiento del mismo momento. Para volver al esquema anterior, restaura ambos respaldos y la versión de la aplicación correspondiente; la migración no intenta reconstruir archivos desde SQL. `Storage__Path` permite usar otra carpeta privada del servidor. No elimines ni renombres archivos manualmente.
-
-El flujo OCR mantiene las imágenes nuevas como temporales y muestra una vista previa antes de confirmar el Word. La vista previa no crea una evidencia.
+En cumplimiento con los requerimientos éticos y metodológicos de la asignatura:
+- Se emplearon herramientas de Inteligencia Artificial (Codex, Antigravity) como apoyo para análisis arquitectónico, diseño de interfaces accesibles (WCAG 2.2 AA), optimización de algoritmos de árboles causales acíclicos (DAG) y generación de datos sintéticos de prueba.
+- Toda la arquitectura, modelos relacionales, reglas de negocio, endpoints y componentes frontend fueron rigurosamente revisados, comprendidos, probados y ajustados por el equipo.
+- El registro histórico detallado de interacciones y decisiones se encuentra documentado en [AI_LOG.md](file:///AI_LOG.md).

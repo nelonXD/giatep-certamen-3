@@ -1,6 +1,26 @@
 name: giatep
 
 services:
+  db:
+    image: postgres:17-alpine
+    container_name: giatep-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-giatep}
+      POSTGRES_USER: ${POSTGRES_USER:-giatep}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-giatep_dev_secret_2026}
+    volumes:
+      - giatep-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-giatep} -d ${POSTGRES_DB:-giatep}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - giatep-net
+
   backend:
     build:
       context: .
@@ -10,18 +30,50 @@ services:
       - "5080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Giatep=${ConnectionStrings__Giatep}
-      - Jwt__Key=${Jwt__Key}
-      - Seed__AdminPassword=${Seed__AdminPassword}
-      - Seed__PrevencionPassword=${Seed__PrevencionPassword}
-      - Seed__JefaturaPassword=${Seed__JefaturaPassword}
-      - Seed__JefaturaSurPassword=${Seed__JefaturaSurPassword}
+      - ConnectionStrings__Giatep=${ConnectionStrings__Giatep:-Host=db;Port=5432;Database=giatep;Username=giatep;Password=giatep_dev_secret_2026;Include Error Detail=true;}
+      - Jwt__Key=${Jwt__Key:-ClaveSecretaDeDesarrolloConAlMenos32Bytes_2026!}
+      - Seed__AdminPassword=${Seed__AdminPassword:-AdminSegura123!}
+      - Seed__PrevencionPassword=${Seed__PrevencionPassword:-PrevencionSegura123!}
+      - Seed__JefaturaPassword=${Seed__JefaturaPassword:-JefaturaSegura123!}
+      - Seed__JefaturaSurPassword=${Seed__JefaturaSurPassword:-JefaturaSurSegura123!}
       - Seed__DatosDemostracion=true
       - Ocr__Engine=${Ocr__Engine:-OcrSpace}
       - Ocr__ApiKey=${Ocr__ApiKey:-}
+      - Storage__Path=/app/storage/evidencias
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
-      interval: 30s
-      timeout: 10s
+      interval: 15s
+      timeout: 5s
       retries: 3
+    volumes:
+      - giatep-evidencias:/app/storage/evidencias
+    networks:
+      - giatep-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: giatep-web
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - giatep-net
+
+volumes:
+  giatep-db-data:
+    driver: local
+  giatep-evidencias:
+    driver: local
+
+networks:
+  giatep-net:
+    driver: bridge

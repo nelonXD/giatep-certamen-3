@@ -121,7 +121,7 @@ Ninguna credencial ni secreto se encuentra almacenado en el repositorio Git. La 
 | `Jwt__Audience` | `GiatepFrontend` | Audiencia destinataria autorizada para consumir los tokens. |
 | `Ocr__Engine` | `OcrSpace` | Motor activo de reconocimiento óptico de caracteres para digitalización de documentos. |
 | `Ocr__ApiKey` | *(Clave privada de API provista por OCR.space)* | Clave para autenticación ante el servicio neuronal de OCR.space (redactada de logs). |
-| `Storage__RootPath` | `/app/storage` | Directorio local dentro del contenedor para la persistencia de evidencias y recortes temporales. |
+| `Storage__Path` | `/app/storage/evidencias` | Directorio local dentro del contenedor para la persistencia de evidencias y recortes temporales (con fallback resiliente a `/tmp` si no hay permisos). |
 
 ### 3.2 Variables en Vercel (Frontend SPA)
 

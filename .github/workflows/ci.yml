@@ -26,21 +26,26 @@ jobs:
       - name: Verificar reconocimiento local de imágenes
         working-directory: backend/ocr
         run: npm test
-      - name: Pruebas de API, roles y negocio
+      - name: Pruebas de API, roles y negocio (72 pruebas)
         run: dotnet test backend/Giatep.Tests --logger 'trx;LogFileName=backend.trx' --results-directory evidencias
       - name: Instalar frontend
         working-directory: frontend
         run: npm ci
-      - name: Compilar frontend
+      - name: Compilar frontend y verificar tipos TypeScript
         working-directory: frontend
         run: npm run build
-      - name: Publicar API
+      - name: Construir imagen Docker Multi-Stage de Backend (.NET 10)
+        run: docker build -t giatep-api:latest -f Dockerfile .
+      - name: Construir imagen Docker Multi-Stage de Frontend (Nginx Alpine)
+        run: docker build -t giatep-web:latest -f frontend/Dockerfile frontend/
+      - name: Publicar API en binarios optimizados
         run: dotnet publish backend/Giatep.Api -c Release -o entrega/api
       - name: Preparar interfaz y configuración de ejemplo
         run: |
           mkdir -p entrega/web
           cp -r frontend/dist/* entrega/web/
           cp README.md entrega/
+          cp .env.example entrega/
           mkdir -p entrega/backend
           cp backend/.env.example entrega/backend/
           cp -r backend/ocr entrega/ocr

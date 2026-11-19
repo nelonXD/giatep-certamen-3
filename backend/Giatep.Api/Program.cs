@@ -60,7 +60,48 @@ builder.Services.AddDbContext<GiatepDbContext>(options =>
     else
         options.UseSqlServer(conexion);
 });
-builder.Services.AddSingleton(new AlmacenEvidencias(builder.Configuration["Storage:Path"] ?? Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "../storage/evidencias"))));
+static string ResolverRutaAlmacenamiento(WebApplicationBuilder b)
+{
+    var configurada = b.Configuration["Storage:Path"]
+        ?? (string.IsNullOrWhiteSpace(b.Configuration["Storage:RootPath"]) ? null : Path.Combine(b.Configuration["Storage:RootPath"]!, "evidencias"));
+
+    if (!string.IsNullOrWhiteSpace(configurada))
+    {
+        try
+        {
+            var ruta = Path.GetFullPath(configurada);
+            Directory.CreateDirectory(ruta);
+            return ruta;
+        }
+        catch { }
+    }
+
+    if (Directory.Exists("/app/storage") || Path.GetFullPath(b.Environment.ContentRootPath) == "/app")
+    {
+        try
+        {
+            const string rutaDocker = "/app/storage/evidencias";
+            Directory.CreateDirectory(rutaDocker);
+            return rutaDocker;
+        }
+        catch { }
+    }
+
+    try
+    {
+        var rutaLocal = Path.GetFullPath(Path.Combine(b.Environment.ContentRootPath, "../storage/evidencias"));
+        Directory.CreateDirectory(rutaLocal);
+        return rutaLocal;
+    }
+    catch
+    {
+        var rutaTemp = Path.Combine(Path.GetTempPath(), "giatep", "storage", "evidencias");
+        Directory.CreateDirectory(rutaTemp);
+        return rutaTemp;
+    }
+}
+var rutaAlmacenamiento = ResolverRutaAlmacenamiento(builder);
+builder.Services.AddSingleton(new AlmacenEvidencias(rutaAlmacenamiento));
 builder.Services.AddScoped<ICasoRepository, CasoSqlRepository>();
 builder.Services.AddScoped<CasoService>();
 builder.Services.AddScoped<InvestigacionService>();
@@ -144,7 +185,7 @@ app.MapGet("/health", async (GiatepDbContext db, IConfiguration config, Cancella
         var conn = db.Database.GetDbConnection();
         await conn.OpenAsync(token);
         await conn.CloseAsync();
-        return Results.Ok(new { estado = "disponible", almacenamiento = db.Database.IsNpgsql() ? "Supabase PostgreSQL" : "SQL Server" });
+        return Results.Ok(new { estado = "disponible", almacenamiento = db.Database.IsNpgsql() ? "Supabase PostgreSQL" : "SQL Server", rutaEvidencias = db.Archivos.Raiz });
     }
     catch (Exception ex)
     {
