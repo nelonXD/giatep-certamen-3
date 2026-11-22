@@ -623,6 +623,7 @@ td > .row-link { margin-right: 12px; }
 .rut-suggestions span { color: #64748b; }
 
 .login-recovery-link {
+  min-height: 44px;
   display: block;
   margin: 8px auto 0;
   padding: 6px;

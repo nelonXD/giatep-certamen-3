@@ -146,7 +146,7 @@ function Listado({ soloMios = false }: { soloMios?: boolean }) {
                   : 'No hay planes con estos filtros. Los planes están disponibles después del cierre de la investigación.'}
               </Empty>
             ) : (
-              <div className="table-wrap">
+              <><p className="table-scroll-hint">Desliza la tabla hacia los lados para ver todos los datos y acciones.</p><div className="table-wrap" tabIndex={0} role="region" aria-label="Planes de acción, tabla desplazable horizontalmente">
                 <table>
                   <caption className="sr-only">Planes de acción por caso</caption>
                   <thead>
@@ -235,7 +235,7 @@ function Listado({ soloMios = false }: { soloMios?: boolean }) {
                     })}
                   </tbody>
                 </table>
-              </div>
+              </div></>
             )}
             <Pagination page={pagina} total={result.data.total} size={15} onChange={setPagina} />
           </section>

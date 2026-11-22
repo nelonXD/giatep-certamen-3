@@ -345,6 +345,12 @@
   border-collapse: collapse;
 }
 
+/* Keep visually hidden labels inside the horizontally scrolling table. */
+.admin-table th,
+.admin-table td {
+  position: relative;
+}
+
 .admin-table th {
   background: #f8fafc;
   font-size: 10px;

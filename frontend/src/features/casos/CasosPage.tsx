@@ -115,7 +115,7 @@ function Listado({ options, soloMios = false }: { options: Opciones; soloMios?: 
         <Search size={18} aria-hidden="true"/>
       </div>
       
-      {!result.data.datos.length ? <Empty/> : <div className="casos-table-wrap">
+      {!result.data.datos.length ? <Empty/> : <><p className="table-scroll-hint">Desliza la tabla hacia los lados para ver todos los datos y acciones.</p><div className="casos-table-wrap" tabIndex={0} role="region" aria-label="Registro de casos, tabla desplazable horizontalmente">
         <table className="casos-table">
           <caption className="sr-only">Registro de casos</caption>
           <thead>
@@ -163,7 +163,7 @@ function Listado({ options, soloMios = false }: { options: Opciones; soloMios?: 
             </tr>)}
           </tbody>
         </table>
-      </div>}
+      </div></>}
       <Pagination page={page} total={result.data.total} onChange={setPage}/>
     </section>}
   </div>;

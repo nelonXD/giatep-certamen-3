@@ -466,6 +466,11 @@ textarea { resize: vertical; }
 
 /* Tables */
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; max-width: 100%; }
+.table-scroll-hint { display: none; }
+@media (max-width: 768px) {
+  .table-scroll-hint { display: block; margin: 8px 0; color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+  .table-wrap:focus-visible, .casos-table-wrap:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+}
 table { border-collapse: collapse; width: 100%; text-align: left; }
 th {
   font-size: 11px;
