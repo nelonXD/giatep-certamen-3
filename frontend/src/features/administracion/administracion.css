@@ -613,14 +613,15 @@
   color: var(--admin-muted);
   border: 1px solid var(--admin-border);
   border-radius: 8px;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color var(--button-motion), color var(--button-motion), border-color var(--button-motion), box-shadow var(--button-motion), transform var(--button-motion);
 }
 
 .admin-icon-button:hover {
@@ -818,8 +819,8 @@
 }
 
 .admin-form-footer button {
-  min-height: 42px;
-  font-size: 12px;
+  min-height: 44px;
+  font-size: 13px;
 }
 
 .admin-audit-note {
