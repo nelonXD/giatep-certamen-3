@@ -434,6 +434,58 @@ summary { cursor: pointer; }
 
 [hidden] { display: none !important; }
 
+/* Persistent app chrome: navigation and account controls stay visible while
+   each authenticated view scrolls independently. */
+@media (min-width: 861px) {
+  .app { min-height: 100dvh; height: 100dvh; overflow: hidden; }
+  .app > .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 40;
+  }
+  .app > .main-wrap {
+    height: 100dvh;
+    min-height: 0;
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    overflow: hidden;
+  }
+  .app > .main-wrap > .topbar { position: relative; top: auto; flex: 0 0 auto; }
+  .app > .main-wrap > main { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+}
+
+@media (min-width: 861px) and (max-width: 1000px) {
+  .app > .main-wrap { margin-left: 220px; width: calc(100% - 220px); }
+}
+
+@media (max-width: 860px) {
+  .app { display: block; min-height: 100dvh; height: 100dvh; overflow: hidden; }
+  .app > .sidebar {
+    position: fixed;
+    inset: 0 0 auto;
+    width: 100%;
+    max-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 50;
+  }
+  .app > .sidebar:has(.navigation.open) { align-items: flex-start; }
+  .app > .sidebar .mobile-toggle { flex: 0 0 40px; margin-left: auto; }
+  .app > .sidebar .navigation.open { max-height: calc(100dvh - 80px); overflow-y: auto; }
+  .app > .sidebar .nav-group-row { min-width: 0; }
+  .app > .main-wrap {
+    height: 100dvh;
+    min-height: 0;
+    padding-top: 68px;
+    overflow: hidden;
+  }
+  .app > .main-wrap > .topbar { position: relative; top: auto; flex: 0 0 auto; }
+  .app > .main-wrap > main { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+}
+
 .navigation .nav-section-title {
   font-size: 10px;
   font-weight: 700;
