@@ -60,6 +60,33 @@ public class ApiTests(GiatepFactory factory) : IClassFixture<GiatepFactory>
     [Fact] public async Task CredencialesIncorrectasNoIngresan() => Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().PostAsJsonAsync("/api/v1/auth/login", new { cuenta = "prevencion", password = "incorrecta" })).StatusCode);
     [Fact] public async Task PrevencionNoAdministra() { using var c = await Login("prevencion"); Assert.Equal(HttpStatusCode.Forbidden, (await c.GetAsync("/api/v1/admin/usuarios")).StatusCode); }
     [Fact] public async Task AdminNoInvestiga() { using var c = await Login("admin"); Assert.Equal(HttpStatusCode.Forbidden, (await c.GetAsync("/api/v1/casos")).StatusCode); }
+    [Fact] public async Task AdministradorRegistraTrabajadorParaAutocompletarYFiltraAuditoria()
+    {
+        using var admin = await Login("admin"); using var prevencion = await Login("prevencion");
+        var opciones = await prevencion.GetFromJsonAsync<JsonElement>("/api/v1/opciones");
+        var centro = opciones.GetProperty("establecimientos")[0].GetProperty("id").GetString();
+        var run = DatosDemostracion.RutDePrueba(66001234);
+        var datos = new { codigo = "ADMIN-TEST-1", nombre = "Prueba admin trabajador", cargo = "Enfermería", establecimientoId = centro, activo = true, run, direccion = "Pasaje de prueba 123", comuna = "Chillán", telefono = "000000000", sexo = "Mujer", fechaNacimiento = "1985-02-10", nacionalidad = "Chilena", fechaIngreso = "2021-04", tipoContrato = "Indefinido", tipoIngreso = "Remuneración fija", categoriaOcupacional = "Trabajador dependiente", puebloOriginario = "Ninguno", otroPueblo = "" };
+        var creado = await admin.PostAsJsonAsync("/api/v1/admin/trabajadores", datos); creado.EnsureSuccessStatusCode();
+        var id = (await creado.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetString();
+        var actualizacionAnterior = new { codigo = "ADMIN-TEST-1", nombre = "Prueba admin trabajador", cargo = "Enfermería", establecimientoId = centro, activo = true };
+        (await admin.PutAsJsonAsync($"/api/v1/admin/trabajadores/{id}", actualizacionAnterior)).EnsureSuccessStatusCode();
+        var registro = await prevencion.GetFromJsonAsync<JsonElement>($"/api/v1/trabajadores/por-rut/{run}");
+        Assert.Equal("Prueba admin trabajador", registro.GetProperty("datos").GetProperty("trabajadorNombre").GetString());
+        Assert.Equal("2021-04", registro.GetProperty("datos").GetProperty("fechaIngreso").GetString());
+        Assert.Equal("Chillán", registro.GetProperty("datos").GetProperty("trabajadorComuna").GetString());
+        Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync("/api/v1/admin/trabajadores", new { codigo = "ADMIN-TEST-2", nombre = "Duplicado de prueba", cargo = "Enfermería", establecimientoId = centro, activo = true, run })).StatusCode);
+        var filtrado = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/admin/trabajadores?buscar={run}&estado=activos&orden=asc");
+        Assert.Equal(1, filtrado.GetProperty("total").GetInt32());
+        (await admin.GetAsync("/api/v1/admin/trabajadores")).EnsureSuccessStatusCode();
+        var auditoria = await admin.GetFromJsonAsync<JsonElement>("/api/v1/admin/auditoria?buscar=Trabajador&orden=desc");
+        Assert.Contains(auditoria.GetProperty("datos").EnumerateArray(), a => a.GetProperty("entidad").GetString() == "Trabajador");
+        var hoy = Consultas.Hoy().ToString("yyyy-MM-dd");
+        var auditoriaHoy = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/admin/auditoria?buscar=Trabajador&desde={hoy}&hasta={hoy}&orden=asc");
+        Assert.True(auditoriaHoy.GetProperty("total").GetInt32() > 0);
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.GetAsync("/api/v1/admin/auditoria?desde=fecha-invalida")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await prevencion.GetAsync("/api/v1/admin/auditoria?buscar=Trabajador")).StatusCode);
+    }
     [Fact] public async Task JefaturaNoCreaCasos() { using var c = await Login("jefatura"); Assert.Equal(HttpStatusCode.Forbidden, (await c.PostAsJsonAsync("/api/v1/casos", new { establecimiento = "Ficticio", tipo = "Accidente", fecha = "2026-01-01", relato = "Relato suficientemente largo para pruebas" })).StatusCode); }
     [Fact] public async Task JefaturaNoVeOtroCentro()
     {

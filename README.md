@@ -57,16 +57,18 @@ El sistema está completamente contenerizado y listo para arrancar en cualquier 
 
 ---
 
-## Credenciales de Demostración (Roles del Sistema)
+## Cuentas de demostración y roles
 
 El sistema incluye 600 casos sintéticos completos (conjunto RUB26) y 3 roles diferenciados:
 
-| Rol | Usuario / Correo | Contraseña Predeterminada | Ámbito / Permisos |
-|---|---|---|---|
-| **Administrador** | `admin@giatep.local` | `AdminSegura123!` | Gestión global de usuarios, centros y auditorías. |
-| **Prevención** | `prevencion@giatep.local` | `PrevencionSegura123!` | Registro DIAT/DIEP, investigaciones, árboles causales y aprobación de planes. |
-| **Jefatura (Centro Norte)** | `jefatura@giatep.local` | `JefaturaSegura123!` | Acceso restringido y aislado al CESFAM Central / Norte; implementación de medidas. |
-| **Jefatura (Centro Sur)** | `jefatura.sur@giatep.local` | `JefaturaSurSegura123!` | Acceso aislado a su propio establecimiento de salud. |
+| Rol | Usuario | Ámbito / Permisos |
+|---|---|---|
+| **Administrador** | `admin` | Gestión global de usuarios, centros y auditorías. |
+| **Prevención** | `prevencion` | Registro DIAT/DIEP, investigaciones, árboles causales y aprobación de planes. |
+| **Jefatura (Centro Norte)** | `jefatura` | Consulta de casos, investigaciones y planes de su centro. |
+| **Jefatura (Centro Sur)** | `jefatura.sur` | Consulta de casos, investigaciones y planes de su centro. |
+
+Las contraseñas se configuran fuera del repositorio. Para desarrollo, consulta `backend/.env.example`; en una instalación existente, solicita las credenciales al responsable del sistema.
 
 ---
 

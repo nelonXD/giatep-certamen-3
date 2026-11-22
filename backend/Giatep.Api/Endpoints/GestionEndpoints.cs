@@ -1,10 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using Giatep.Api.Models;
 using Giatep.Api.Services;
+using Giatep.Api.ValidacionesDTO;
 using Microsoft.AspNetCore.Identity;
 namespace Giatep.Api.Endpoints;
 public record CentroDTO(string Nombre, string Direccion, bool Activo);
-public record TrabajadorDTO(string Codigo, string Nombre, string Cargo, Guid EstablecimientoId, bool Activo);
+public record TrabajadorDTO(string Codigo, string Nombre, string Cargo, Guid EstablecimientoId, bool Activo,
+    string? Run = null, string? Direccion = null, string? Comuna = null, string? Telefono = null, string? Sexo = null,
+    string? FechaNacimiento = null, string? Nacionalidad = null, string? FechaIngreso = null, string? TipoContrato = null,
+    string? TipoIngreso = null, string? CategoriaOcupacional = null, string? PuebloOriginario = null, string? OtroPueblo = null);
 public record UsuarioDTO(string Cuenta, string Nombre, string Rol, Guid? EstablecimientoId, bool Activo, string? Password);
 public static class GestionEndpoints
 {
@@ -21,19 +25,34 @@ public static class GestionEndpoints
         admin.MapGet("/establecimientos", (GiatepDbContext db) => db.Establecimientos.OrderBy(e => e.Nombre).ToArray());
         admin.MapPost("/establecimientos", (CentroDTO dto, GiatepDbContext db) => GuardarCentro(null, dto, db));
         admin.MapPut("/establecimientos/{id:guid}", (Guid id, CentroDTO dto, GiatepDbContext db) => GuardarCentro(id, dto, db));
-        admin.MapGet("/trabajadores", (GiatepDbContext db, string? buscar, int pagina = 1) => {
+        admin.MapGet("/trabajadores", (GiatepDbContext db, string? buscar, string? estado, string? orden, int pagina = 1) => {
             if (pagina < 1 || pagina > 100000) throw new ValidationException("Página inválida.");
-            var q = db.Trabajadores.Where(t => string.IsNullOrEmpty(buscar) || t.Nombre.Contains(buscar) || t.Codigo.Contains(buscar));
-            return Results.Ok(new { total = q.Count(), datos = q.OrderBy(t => t.Nombre).Skip((pagina - 1) * 15).Take(15).ToArray() });
+            var q = db.Trabajadores.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(buscar)) {
+                var texto = buscar.Trim().ToLowerInvariant();
+                if (texto.Length > 150) throw new ValidationException("La búsqueda supera el largo permitido.");
+                var run = texto.Replace(".", "").Replace("-", "");
+                q = q.Where(t => t.Nombre.ToLower().Contains(texto) || t.Codigo.ToLower().Contains(texto) || (t.Run != null && t.Run.Contains(run)));
+            }
+            if (estado == "activos") q = q.Where(t => t.Activo);
+            else if (estado == "inactivos") q = q.Where(t => !t.Activo);
+            var ordenado = orden == "desc" ? q.OrderByDescending(t => t.Nombre).ThenBy(t => t.Id) : q.OrderBy(t => t.Nombre).ThenBy(t => t.Id);
+            return Results.Ok(new { total = q.Count(), datos = ordenado.Skip((pagina - 1) * 15).Take(15).ToArray() });
         });
         admin.MapPost("/trabajadores", (TrabajadorDTO dto, GiatepDbContext db) => GuardarTrabajador(null, dto, db));
         admin.MapPut("/trabajadores/{id:guid}", (Guid id, TrabajadorDTO dto, GiatepDbContext db) => GuardarTrabajador(id, dto, db));
         admin.MapGet("/usuarios", (GiatepDbContext db) => db.Usuarios.OrderBy(u => u.Cuenta).Select(u => new { u.Id, u.Cuenta, u.Nombre, u.Rol, u.EstablecimientoId, u.Activo }).ToArray());
         admin.MapPost("/usuarios", (UsuarioDTO dto, GiatepDbContext db, AccesoService acceso) => GuardarUsuario(null, dto, db, acceso));
         admin.MapPut("/usuarios/{id:guid}", (Guid id, UsuarioDTO dto, GiatepDbContext db, AccesoService acceso) => GuardarUsuario(id, dto, db, acceso));
-        admin.MapGet("/auditoria", (GiatepDbContext db, int pagina = 1) => {
+        admin.MapGet("/auditoria", (GiatepDbContext db, string? buscar, string? desde, string? hasta, string? orden, int pagina = 1) => {
             if (pagina < 1 || pagina > 100000) throw new ValidationException("Página inválida.");
-            return Results.Ok(new { total = db.Auditorias.Count(), datos = db.Auditorias.OrderByDescending(a => a.Fecha).ThenByDescending(a => a.Id).Skip((pagina - 1) * 20).Take(20).ToArray() });
+            var q = db.Auditorias.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(buscar)) { var texto = buscar.Trim().ToLowerInvariant(); if (texto.Length > 150) throw new ValidationException("La búsqueda supera el largo permitido."); q = q.Where(a => a.Actor.ToLower().Contains(texto) || a.Entidad.ToLower().Contains(texto) || a.Accion.ToLower().Contains(texto)); }
+            var zona = TimeZoneInfo.FindSystemTimeZoneById("Pacific SA Standard Time");
+            if (!string.IsNullOrEmpty(desde)) { if (!DateOnly.TryParseExact(desde, "yyyy-MM-dd", out var d)) throw new ValidationException("Fecha inicial inválida."); var limite = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(d.ToDateTime(TimeOnly.MinValue), zona)); q = q.Where(a => a.Fecha >= limite); }
+            if (!string.IsNullOrEmpty(hasta)) { if (!DateOnly.TryParseExact(hasta, "yyyy-MM-dd", out var d) || d == DateOnly.MaxValue) throw new ValidationException("Fecha final inválida."); var limite = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(d.AddDays(1).ToDateTime(TimeOnly.MinValue), zona)); q = q.Where(a => a.Fecha < limite); }
+            var ordenado = orden == "asc" ? q.OrderBy(a => a.Fecha).ThenBy(a => a.Id) : q.OrderByDescending(a => a.Fecha).ThenByDescending(a => a.Id);
+            return Results.Ok(new { total = q.Count(), datos = ordenado.Skip((pagina - 1) * 20).Take(20).ToArray() });
         });
     }
     private static IResult GuardarCentro(Guid? id, CentroDTO dto, GiatepDbContext db)
@@ -51,6 +70,27 @@ public static class GestionEndpoints
         if (!db.Establecimientos.Any(e => e.Id == dto.EstablecimientoId && e.Activo)) throw new ValidationException("Establecimiento no activo.");
         if (db.Trabajadores.Any(t => t.Codigo == dto.Codigo.Trim() && t.Id != id)) throw new ReglaNegocioException("El código ya existe.");
         var row = id.HasValue ? db.Trabajadores.Find(id) ?? throw new KeyNotFoundException() : new Trabajador { Id = Guid.NewGuid() };
+        if (dto.Run is not null) {
+            var run = dto.Run.Trim();
+            if (run.Length > 0 && !Denuncias.RutValido(run)) throw new ValidationException("Revisa el RUN y su dígito verificador.");
+            var normalizado = run.Length > 0 ? DenunciaAlmacen.NormalizarRut(run) : null;
+            if (normalizado is not null && db.Trabajadores.Any(t => t.Run == normalizado && t.Id != row.Id)) throw new ReglaNegocioException("El RUN ya está registrado.");
+            row.Run = normalizado;
+        }
+        static string? Dato(string? value, string? previo, int max, string campo) { if (value is null) return previo; var texto = value.Trim(); if (texto.Length > max) throw new ValidationException($"{campo} supera el largo permitido."); return texto.Length == 0 ? null : texto; }
+        row.Direccion = Dato(dto.Direccion, row.Direccion, 200, "Dirección"); row.Comuna = Dato(dto.Comuna, row.Comuna, 100, "Comuna"); row.Telefono = Dato(dto.Telefono, row.Telefono, 30, "Teléfono");
+        row.Sexo = Dato(dto.Sexo, row.Sexo, 30, "Sexo"); if (row.Sexo is not null && row.Sexo is not ("Hombre" or "Mujer")) throw new ValidationException("Sexo inválido.");
+        if (dto.FechaNacimiento is not null) { if (dto.FechaNacimiento.Length == 0) row.FechaNacimiento = null; else if (DateOnly.TryParseExact(dto.FechaNacimiento, "yyyy-MM-dd", out var fecha) && fecha <= Consultas.Hoy()) row.FechaNacimiento = fecha; else throw new ValidationException("Fecha de nacimiento inválida."); }
+        row.Nacionalidad = Dato(dto.Nacionalidad, row.Nacionalidad, 100, "Nacionalidad");
+        row.FechaIngreso = Dato(dto.FechaIngreso, row.FechaIngreso, 7, "Fecha de ingreso");
+        if (row.FechaIngreso is not null && (!DateOnly.TryParseExact(row.FechaIngreso + "-01", "yyyy-MM-dd", out var ingreso) || ingreso > Consultas.Hoy())) throw new ValidationException("Fecha de ingreso inválida.");
+        row.TipoContrato = Dato(dto.TipoContrato, row.TipoContrato, 50, "Tipo de contrato"); row.TipoIngreso = Dato(dto.TipoIngreso, row.TipoIngreso, 50, "Tipo de ingreso"); row.CategoriaOcupacional = Dato(dto.CategoriaOcupacional, row.CategoriaOcupacional, 80, "Categoría ocupacional");
+        row.PuebloOriginario = Dato(dto.PuebloOriginario, row.PuebloOriginario, 80, "Pueblo originario"); row.OtroPueblo = Dato(dto.OtroPueblo, row.OtroPueblo, 100, "Otro pueblo");
+        static void Opcion(string? recibido, string? valor, string campo, params string[] opciones) { if (recibido is not null && valor is not null && !opciones.Contains(valor)) throw new ValidationException($"{campo} inválido."); }
+        Opcion(dto.TipoContrato, row.TipoContrato, "Tipo de contrato", "Indefinido", "Plazo fijo", "Por obra o faena", "Temporada");
+        Opcion(dto.TipoIngreso, row.TipoIngreso, "Tipo de ingreso", "Remuneración fija", "Remuneración variable", "Honorarios");
+        Opcion(dto.CategoriaOcupacional, row.CategoriaOcupacional, "Categoría ocupacional", "Empleador", "Trabajador dependiente", "Trabajador independiente", "Familiar no remunerado", "Trabajador voluntario");
+        Opcion(dto.PuebloOriginario, row.PuebloOriginario, "Pueblo originario", "Alacalufe", "Atacameño", "Aimara", "Colla", "Diaguita", "Mapuche", "Quechua", "Rapanui", "Yamana (Yagán)", "Otro", "Ninguno");
         row.Codigo = dto.Codigo.Trim(); row.Nombre = dto.Nombre.Trim(); row.Cargo = dto.Cargo.Trim(); row.EstablecimientoId = dto.EstablecimientoId; row.Activo = dto.Activo;
         if (!id.HasValue) db.Trabajadores.Add(row); db.SaveChanges(); return id.HasValue ? Results.Ok(row) : Results.Created($"/api/v1/admin/trabajadores/{row.Id}", row);
     }

@@ -40,9 +40,11 @@ Dashboard y reportes incluyen únicamente tu ámbito autorizado, incluso al camb
 
 En Administración puedes agregar y editar usuarios, establecimientos y trabajadores. Una jefatura requiere establecimiento activo. Las contraseñas nuevas deben tener al menos 12 caracteres. Al editar una cuenta, deja la contraseña vacía si deseas conservarla.
 
+En Trabajadores, registra el RUN y los antecedentes disponibles para que Prevención pueda recuperarlos al completar una denuncia DIAT o DIEP. El RUN es opcional para registros antiguos, pero es necesario para el autocompletado. Puedes buscar por nombre, código o RUN y filtrar por estado.
+
 Para una baja, elige Inactivo y confirma. El sistema conserva el historial. No puedes desactivar tu propia cuenta ni retirarte el rol administrador. Las cuentas con medidas pendientes deben resolverlas antes de cambiar su rol, centro o estado. Los establecimientos con usuarios activos tampoco pueden desactivarse.
 
-La pestaña Auditoría muestra actor, fecha, entidad y acción. Expande Ver cambios para consultar los campos registrados. El administrador puede consultar dashboard y reportes; no opera investigaciones.
+La pestaña Auditoría muestra actor, fecha, entidad y acción. Puedes buscar por actor, entidad o acción, acotar por fechas y cambiar el orden. Expande Ver cambios para consultar los campos registrados. El administrador puede consultar dashboard y reportes; no opera investigaciones.
 
 ## Dashboard
 

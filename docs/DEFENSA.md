@@ -11,10 +11,10 @@ Esta guía técnica está diseñada para orientar y preparar a los estudiantes d
    - Render Free Tier suspende contenedores tras 15 minutos de inactividad.
    - Ejecutar una petición GET en el navegador o consola a `https://giatep-api.onrender.com/health` 5 minutos antes de la defensa. Esto asegura que el contenedor Docker esté activo y caliente, respondiendo en menos de 200 milisegundos durante la presentación.
 2. **Credenciales de Demostración**:
-   - **Administrador**: `admin` / `318DACA68BD8E0F059a!` (Gestión de usuarios y maestros institucionales).
-   - **Prevención de Riesgos**: `prevencion` / `4FCE85824E892FA73Aa!` (Gestión transversal de casos, investigaciones, OCR y planes).
-   - **Jefatura de Centro**: `jefatura` / `EEB7E1BA2D8B6D18F5a!` (Confinado al Centro de Salud Norte).
-   - **Jefatura Sur**: `jefatura.sur` / `4546E8F9F224395D4Ca!` (Confinado al Centro de Salud Sur).
+   - **Administrador**: `admin` (contraseña proporcionada por el responsable del sistema) (Gestión de usuarios y maestros institucionales).
+   - **Prevención de Riesgos**: `prevencion` (contraseña proporcionada por el responsable del sistema) (Gestión transversal de casos, investigaciones, OCR y planes).
+   - **Jefatura de Centro**: `jefatura` (contraseña proporcionada por el responsable del sistema) (Confinado al Centro de Salud Norte).
+   - **Jefatura Sur**: `jefatura.sur` (contraseña proporcionada por el responsable del sistema) (Confinado al Centro de Salud Sur).
 3. **Evidencias de Prueba Preparadas**:
    - Imagen de documento de prueba: `backend/ocr/test-fixtures/documento.png` o cualquier imagen escaneada ligera (PNG/JPG <= 1 MB) que contenga texto, sellos y firmas.
 4. **Verificación de Navegación por Teclado**:

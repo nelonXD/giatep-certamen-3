@@ -4,6 +4,12 @@ import { Field, Select, Message } from '../../components/common/UI';
 import { request } from '../../api/client';
 import { RolesPermisos } from './RolesPermisos';
 import type { RegistroAdmin, SeccionAdmin } from './admin.types';
+import schema from '../../../../shared/denuncias.json';
+
+const opcionesTrabajador = (key: string): string[] => {
+  const campo = schema.flatMap(g => g.fields).find(c => c.key === key);
+  return campo && 'options' in campo ? campo.options as string[] : [];
+};
 
 export function AdminForm({ seccion, registro, centros, onCancel, onSaved, onBusy }: {
   seccion: SeccionAdmin; registro: RegistroAdmin; centros: RegistroAdmin[];
@@ -20,7 +26,10 @@ export function AdminForm({ seccion, registro, centros, onCancel, onSaved, onBus
     if (registro.id && registro.activo && !activo && !window.confirm(`¿Desactivar este ${nombre}? Su historial se conservará.`)) return;
     const body: Record<string, unknown> = { nombre: data.get('nombre'), activo };
     if (seccion === 'usuarios') Object.assign(body, { cuenta: data.get('cuenta'), rol: data.get('rol'), establecimientoId: data.get('establecimientoId') || null, password: data.get('password') || null });
-    if (seccion === 'trabajadores') Object.assign(body, { codigo: data.get('codigo'), cargo: data.get('cargo'), establecimientoId: data.get('establecimientoId') });
+    if (seccion === 'trabajadores') {
+      Object.assign(body, { codigo: data.get('codigo'), cargo: data.get('cargo'), establecimientoId: data.get('establecimientoId') });
+      for (const key of ['run', 'direccion', 'comuna', 'telefono', 'sexo', 'fechaNacimiento', 'nacionalidad', 'fechaIngreso', 'tipoContrato', 'tipoIngreso', 'categoriaOcupacional', 'puebloOriginario', 'otroPueblo']) body[key] = data.get(key) || '';
+    }
     if (seccion === 'establecimientos') body.direccion = data.get('direccion');
     setBusy(true); onBusy(true); setError('');
     try {
@@ -44,6 +53,18 @@ export function AdminForm({ seccion, registro, centros, onCancel, onSaved, onBus
           {seccion === 'trabajadores' && <>
             <Field label="Código interno" name="codigo" required minLength={3} maxLength={30} defaultValue={registro.codigo}/>
             <Field label="Cargo" name="cargo" required minLength={3} maxLength={100} defaultValue={registro.cargo}/>
+            <Field label="RUN" name="run" maxLength={16} help="Ingresa el RUN con dígito verificador; se usará para buscar al trabajador." defaultValue={registro.run}/>
+            <Field label="Dirección" name="direccion" maxLength={200} defaultValue={registro.direccion}/>
+            <Field label="Comuna" name="comuna" maxLength={100} defaultValue={registro.comuna}/>
+            <Field label="Teléfono" name="telefono" maxLength={30} defaultValue={registro.telefono}/>
+            <Field label="Fecha de nacimiento" name="fechaNacimiento" type="date" defaultValue={registro.fechaNacimiento}/>
+            <Field label="Nacionalidad" name="nacionalidad" maxLength={100} defaultValue={registro.nacionalidad}/>
+            <Field label="Mes de ingreso" name="fechaIngreso" type="month" defaultValue={registro.fechaIngreso}/>
+            {(['sexo', 'tipoContrato', 'tipoIngreso', 'categoriaOcupacional', 'puebloOriginario'] as const).map(key => {
+              const labels = { sexo: 'Sexo', tipoContrato: 'Tipo de contrato', tipoIngreso: 'Tipo de ingreso', categoriaOcupacional: 'Categoría ocupacional', puebloOriginario: 'Pueblo originario' };
+              return <Select key={key} label={labels[key]} name={key} defaultValue={registro[key] || ''}><option value="">Sin información</option>{opcionesTrabajador(key).map(opcion => <option key={opcion} value={opcion}>{opcion}</option>)}</Select>;
+            })}
+            <Field label="Otro pueblo originario" name="otroPueblo" maxLength={100} defaultValue={registro.otroPueblo}/>
             <Select label="Establecimiento" name="establecimientoId" required defaultValue={registro.establecimientoId || ''}>
               <option value="">Selecciona un establecimiento</option>{centros.filter(c => c.activo).map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
             </Select>

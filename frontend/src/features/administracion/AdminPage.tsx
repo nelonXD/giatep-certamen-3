@@ -23,6 +23,7 @@ export function AdminPage({ seccionId = 'usuarios' }: { seccionId?: SeccionAdmin
   const [page, setPage] = useState(1);
   const [buscar, setBuscar] = useState(''), [consulta, setConsulta] = useState('');
   const [estado, setEstado] = useState('todos'), [perfil, setPerfil] = useState('todos');
+  const [orden, setOrden] = useState('desc'), [desde, setDesde] = useState(''), [hasta, setHasta] = useState('');
   const [auditoriaAbierta, setAuditoriaAbierta] = useState<string | null>(null);
   const [editing, setEditing] = useState<RegistroAdmin | null>(null), [success, setSuccess] = useState(''), [busy, setBusy] = useState(false);
   const trigger = useRef<HTMLButtonElement | null>(null), listado = useRef<HTMLElement>(null);
@@ -30,26 +31,29 @@ export function AdminPage({ seccionId = 'usuarios' }: { seccionId?: SeccionAdmin
     const timer = window.setTimeout(() => { setConsulta(buscar); setPage(1); }, 300);
     return () => window.clearTimeout(timer);
   }, [buscar]);
-  const path = `/admin/${tab}${tab === 'trabajadores' ? `?pagina=${page}&buscar=${encodeURIComponent(consulta)}` : tab === 'auditoria' ? `?pagina=${page}` : ''}`;
+  const params = new URLSearchParams({ pagina: String(page), buscar: consulta, orden, ...(tab === 'trabajadores' ? { estado } : {}), ...(tab === 'auditoria' ? { desde, hasta } : {}) });
+  const path = `/admin/${tab}${tab === 'trabajadores' || tab === 'auditoria' ? `?${params}` : ''}`;
   const result = useLoad<ListaAdmin>(path);
   const centros = useLoad<RegistroAdmin[]>('/admin/establecimientos'), usuarios = useLoad<RegistroAdmin[]>('/admin/usuarios');
   const seccion = seccionesAdmin.find(s => s.id === tab)!;
   const rows = Array.isArray(result.data) ? result.data : result.data?.datos || [];
   const nombresCentros = new Map((centros.data || []).map(c => [c.id, c.nombre || 'Sin nombre']));
   const normalizar = (value = '') => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  const visibles = tab === 'usuarios' || tab === 'establecimientos' ? rows.filter(r =>
+  const filtrados = tab === 'usuarios' || tab === 'establecimientos' ? rows.filter(r =>
     (!buscar || normalizar(`${r.nombre} ${r.cuenta || ''} ${r.direccion || ''}`).includes(normalizar(buscar))) &&
     (estado === 'todos' || r.activo === (estado === 'activos')) &&
     (tab !== 'usuarios' || perfil === 'todos' || r.rol === perfil)) : rows;
-  const total = Array.isArray(result.data) ? result.data.length : result.data?.total ?? 0;
-  const filtrado = !!buscar || estado !== 'todos' || perfil !== 'todos';
+  const ordenados = tab === 'usuarios' || tab === 'establecimientos' ? [...filtrados].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es') * (orden === 'asc' ? 1 : -1)) : filtrados;
+  const visibles = tab === 'usuarios' || tab === 'establecimientos' ? ordenados.slice((page - 1) * 15, page * 15) : ordenados;
+  const total = Array.isArray(result.data) ? ordenados.length : result.data?.total ?? 0;
+  const filtrado = !!buscar || estado !== 'todos' || perfil !== 'todos' || !!desde || !!hasta;
   const resumenFuente = tab === 'usuarios' ? usuarios.data : centros.data;
   const resumen = [
     { titulo: tab === 'usuarios' ? 'Cuentas registradas' : 'Centros registrados', valor: resumenFuente?.length, icono: tab === 'usuarios' ? Users : Building2 },
     { titulo: tab === 'usuarios' ? 'Usuarios activos' : 'Centros activos', valor: resumenFuente?.filter(r => r.activo).length, icono: UserCheck },
     { titulo: tab === 'usuarios' ? 'Usuarios inactivos' : 'Centros inactivos', valor: resumenFuente?.filter(r => !r.activo).length, icono: ShieldCheck }
   ];
-  function limpiar() { setBuscar(''); setConsulta(''); setEstado('todos'); setPerfil('todos'); setPage(1); }
+  function limpiar() { setBuscar(''); setConsulta(''); setEstado('todos'); setPerfil('todos'); setDesde(''); setHasta(''); setPage(1); }
   function cerrar() { setEditing(null); trigger.current?.focus(); }
   function actualizar() { result.refresh(); centros.refresh(); usuarios.refresh(); }
   function editar(r: RegistroAdmin, boton: HTMLButtonElement) { trigger.current = boton; setEditing(r); setSuccess(''); }
@@ -68,13 +72,15 @@ export function AdminPage({ seccionId = 'usuarios' }: { seccionId?: SeccionAdmin
           {tab !== 'auditoria' && <button className="primary" type="button" disabled={busy} onClick={e => editar({ id: '', activo: true }, e.currentTarget)}><Plus size={17} aria-hidden="true"/>Agregar {seccion.singular}</button>}
         </div>
       </div>
-      {tab !== 'auditoria' ? <div className="admin-toolbar">
-        <div className="admin-search"><Search size={18} aria-hidden="true"/><Field label={`Buscar ${seccion.singular}`} type="search" placeholder={tab === 'usuarios' ? 'Buscar por nombre o cuenta…' : tab === 'establecimientos' ? 'Buscar por nombre o dirección…' : 'Buscar por nombre o código…'}
+      <div className="admin-toolbar">
+        <div className="admin-search"><Search size={18} aria-hidden="true"/><Field label={tab === 'auditoria' ? 'Buscar en auditoría' : `Buscar ${seccion.singular}`} type="search" placeholder={tab === 'usuarios' ? 'Buscar por nombre o cuenta…' : tab === 'establecimientos' ? 'Buscar por nombre o dirección…' : tab === 'auditoria' ? 'Buscar por usuario, entidad o acción…' : 'Buscar por nombre, código o RUN…'}
           maxLength={150} value={buscar} onChange={e => setBuscar(e.target.value)}/></div>
-        {tab === 'usuarios' && <Select label="Perfil de acceso" value={perfil} onChange={e => setPerfil(e.target.value)}><option value="todos">Todos los perfiles</option>{perfiles.map(p => <option key={p.value} value={p.value}>{p.nombre}</option>)}</Select>}
-        {tab !== 'trabajadores' && <Select label="Estado" value={estado} onChange={e => setEstado(e.target.value)}><option value="todos">Todos los estados</option><option value="activos">Activos</option><option value="inactivos">Inactivos</option></Select>}
+        {tab === 'usuarios' && <Select label="Perfil de acceso" value={perfil} onChange={e => { setPerfil(e.target.value); setPage(1); }}><option value="todos">Todos los perfiles</option>{perfiles.map(p => <option key={p.value} value={p.value}>{p.nombre}</option>)}</Select>}
+        {tab !== 'auditoria' && <Select label="Estado" value={estado} onChange={e => { setEstado(e.target.value); setPage(1); }}><option value="todos">Todos los estados</option><option value="activos">Activos</option><option value="inactivos">Inactivos</option></Select>}
+        {tab === 'auditoria' && <><Field label="Desde" type="date" value={desde} max={hasta || undefined} onChange={e => { setDesde(e.target.value); setPage(1); }}/><Field label="Hasta" type="date" value={hasta} min={desde || undefined} onChange={e => { setHasta(e.target.value); setPage(1); }}/></>}
+        <Select label="Orden" value={orden} onChange={e => { setOrden(e.target.value); setPage(1); }}><option value="desc">{tab === 'auditoria' ? 'Más recientes' : 'Nombre Z–A'}</option><option value="asc">{tab === 'auditoria' ? 'Más antiguos' : 'Nombre A–Z'}</option></Select>
         {filtrado && <button className="admin-clear" type="button" onClick={limpiar}>Limpiar filtros</button>}
-      </div> : <div className="admin-audit-note"><History size={16} aria-hidden="true"/><span>Historial ordenado del más reciente al más antiguo. Las horas corresponden a Santiago.</span></div>}
+      </div>{tab === 'auditoria' && <div className="admin-audit-note"><History size={16} aria-hidden="true"/><span>Las horas corresponden a Santiago.</span></div>}
       {result.loading ? <div className="admin-loading"><Loading/></div> : result.error ? <div className="admin-empty"><History size={28} aria-hidden="true"/><h3>No pudimos cargar los registros</h3><p>Intenta actualizar el listado.</p><button className="secondary" onClick={actualizar}>Volver a intentar</button></div> : !visibles.length ?
         <div className="admin-empty"><Search size={28} aria-hidden="true"/><h3>{filtrado ? 'No encontramos coincidencias' : `Todavía no hay ${seccion.nombre.toLowerCase()}`}</h3><p>{filtrado ? 'Prueba con otro nombre o ajusta los filtros.' : 'Los registros aparecerán aquí cuando se incorporen al sistema.'}</p>{filtrado && <button className="secondary" onClick={limpiar}>Limpiar filtros</button>}</div> :
         <div><p className="admin-table-hint">Desliza la tabla hacia los lados para ver todos los datos y acciones.</p><div className="table-wrap" tabIndex={0} role="region" aria-label={`Tabla de ${seccion.nombre.toLowerCase()}, desplazable horizontalmente`}><table className="admin-table"><caption className="sr-only">Listado de {seccion.nombre.toLowerCase()}</caption><thead><tr>
@@ -98,7 +104,7 @@ export function AdminPage({ seccionId = 'usuarios' }: { seccionId?: SeccionAdmin
           {tab === 'auditoria' && <td className="admin-audit-toggle-cell"><AuditoriaDetalle cambios={r.cambios} registroId={r.registroId} centros={nombresCentros} expanded={auditoriaAbierta === r.id} onToggle={() => setAuditoriaAbierta(auditoriaAbierta === r.id ? null : r.id)}/></td>}
         </tr>{tab === 'auditoria' && auditoriaAbierta === r.id && <tr className="admin-audit-expanded-row"><td colSpan={5}><AuditoriaDetalle cambios={r.cambios} registroId={r.registroId} centros={nombresCentros} panel/></td></tr>}</Fragment>)}</tbody></table></div></div>}
       {!result.loading && !result.error && <div className="admin-list-footer"><span role="status">{visibles.length} {visibles.length === 1 ? 'registro visible' : 'registros visibles'}{tab === 'trabajadores' || tab === 'auditoria' ? ' en esta página' : ` de ${total}`}</span><span>GIATEP · Administración</span></div>}
-      {result.data && !Array.isArray(result.data) && result.data.total > (tab === 'auditoria' ? 20 : 15) && <Pagination page={page} total={result.data.total} size={tab === 'auditoria' ? 20 : 15} onChange={next => { setPage(next); listado.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); }}/ >}
+      {result.data && total > (tab === 'auditoria' ? 20 : 15) && <Pagination page={page} total={total} size={tab === 'auditoria' ? 20 : 15} onChange={next => { setPage(next); listado.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); }}/ >}
     </section>
     <p className="admin-bottom-note"><ShieldCheck size={15} aria-hidden="true"/>Los registros inactivos conservan su historial. Los permisos se aplican según el perfil de cada cuenta.</p>
   </div>;
