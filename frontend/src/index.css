@@ -665,6 +665,15 @@ td small {
 @media(prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease, fill 300ms ease, stroke 300ms ease, box-shadow 300ms ease !important;
+  }
+}
 @media print {
   .sidebar, .topbar, .primary, .secondary, .row-link, .dev-notice, .filters, .pagination, .measure-form { display: none !important; }
   .app { display: block; }
