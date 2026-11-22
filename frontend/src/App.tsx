@@ -1,6 +1,6 @@
 import { PlanesPage } from './features/planes/PlanesPage';
 import { useEffect, useRef, useState } from 'react';
-import { ShieldCheck, LayoutDashboard, ClipboardList, FileBarChart, LogOut, Menu, LockKeyhole, ChevronDown, Bell, Sun, Moon } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, ClipboardList, FileBarChart, LogOut, Menu, LockKeyhole, ChevronDown, ChevronLeft, ChevronRight, Bell, Sun, Moon } from 'lucide-react';
 import { ApiError, request, TOKEN_KEY } from './api/client';
 import { AuthContext } from './context/AuthContext';
 import type { Usuario } from './context/AuthContext';
@@ -18,7 +18,7 @@ export function App() {
     try { return document.documentElement.dataset.theme === 'dark' || localStorage.getItem('giatep:theme') === 'dark' ? 'dark' : 'light'; }
     catch { return 'light'; }
   });
-  const [user, setUser] = useState<Usuario | null>(null), [ready, setReady] = useState(false), [error, setError] = useState(''), [busy, setBusy] = useState(false), [menu, setMenu] = useState(false);
+  const [user, setUser] = useState<Usuario | null>(null), [ready, setReady] = useState(false), [error, setError] = useState(''), [busy, setBusy] = useState(false), [menu, setMenu] = useState(false), [sidebarCollapsed, setSidebarCollapsed] = useState(() => { try { return localStorage.getItem('giatep:sidebar-collapsed') === 'true'; } catch { return false; } });
   const [sessionError, setSessionError] = useState('');
   const themeTransitionTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => {
@@ -103,13 +103,13 @@ export function App() {
   }
   else if (path === '/password') page = <PasswordPage onChanged={() => { sessionStorage.removeItem(TOKEN_KEY); setUser(null); setError('Contraseña actualizada. Ingresa con tu nueva contraseña.'); }}/>;
   else page = <ErrorPage/>;
-  return <AuthContext.Provider value={user}><div className="app"><a className="skip" href="#contenido" onClick={e => { e.preventDefault(); mainRef.current?.focus(); }}>Saltar al contenido</a><aside className={`sidebar${user.rol === 'Administrador' ? ' admin-sidebar' : ''}`}><a className="brand" href="#/dashboard"><span className="brand-icon"><ShieldCheck size={26}/></span><span>GIATEP<small>Gestión preventiva</small></span></a><button className="mobile-toggle" aria-expanded={menu} aria-controls="navegacion" aria-label="Mostrar navegación" onClick={() => setMenu(!menu)}><Menu/></button><nav id="navegacion" className={menu ? 'navigation open' : 'navigation'} aria-label="Principal"><p className="nav-title">ESPACIO DE TRABAJO</p>{links.map(item => {
+  return <AuthContext.Provider value={user}><div className={`app${sidebarCollapsed ? ' sidebar-collapsed' : ''}`}><a className="skip" href="#contenido" onClick={e => { e.preventDefault(); mainRef.current?.focus(); }}>Saltar al contenido</a><aside className={`sidebar${user.rol === 'Administrador' ? ' admin-sidebar' : ''}`}><a className="brand" href="#/dashboard"><span className="brand-icon"><ShieldCheck size={26}/></span><span>GIATEP<small>Gestión preventiva</small></span></a><button className="sidebar-collapse-toggle" type="button" aria-label={sidebarCollapsed ? 'Expandir barra lateral' : 'Contraer barra lateral'} title={sidebarCollapsed ? 'Expandir barra lateral' : 'Contraer barra lateral'} aria-pressed={sidebarCollapsed} onClick={() => setSidebarCollapsed(value => { const next = !value; try { localStorage.setItem('giatep:sidebar-collapsed', String(next)); } catch {} return next; })}>{sidebarCollapsed ? <ChevronRight size={18}/> : <ChevronLeft size={18}/>}</button><button className="mobile-toggle" aria-expanded={menu} aria-controls="navegacion" aria-label="Mostrar navegación" onClick={() => setMenu(!menu)}><Menu/></button><nav id="navegacion" className={menu ? 'navigation open' : 'navigation'} aria-label="Principal"><p className="nav-title">ESPACIO DE TRABAJO</p>{links.map(item => {
     const activo = path.startsWith(item.path);
     const esCasos = item.path === '/casos';
     const esPlanes = item.path === '/planes';
     const esInvestigaciones = item.path === '/investigaciones';
     if (user.rol === 'Jefatura' || (!esCasos && !esPlanes && !esInvestigaciones)) {
-      return <a key={item.path} className={`nav-item ${activo ? 'active' : ''}`} href={`#${item.path}`} aria-current={activo ? 'page' : undefined}><item.icon size={19}/>{item.label}</a>;
+      return <a key={item.path} title={item.label} className={`nav-item ${activo ? 'active' : ''}`} href={`#${item.path}`} aria-current={activo ? 'page' : undefined}><item.icon size={20} strokeWidth={1.8} aria-hidden="true"/>{item.label}</a>;
     }
     const abierto = submenus[item.path] ?? activo;
     const hijos = esPlanes
@@ -120,12 +120,13 @@ export function App() {
     return <div className="nav-group" key={item.path}>
       <div className="nav-group-row" style={{ display: 'flex', alignItems: 'center' }}>
         <a
+          title={item.label}
           className={`nav-item ${activo ? 'active' : ''}`}
           href={`#${item.path}`}
           aria-current={activo && !hijos.some(h => h.active) ? 'page' : undefined}
           style={{ flex: 1 }}
         >
-          <item.icon size={19}/>
+          <item.icon size={20} strokeWidth={1.8} aria-hidden="true"/>
           <span>{item.label}</span>
         </a>
         <button

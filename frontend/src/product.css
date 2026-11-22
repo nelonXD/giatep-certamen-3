@@ -461,7 +461,47 @@ summary { cursor: pointer; }
   .app > .main-wrap { margin-left: 220px; width: calc(100% - 220px); }
 }
 
+.sidebar-collapse-toggle {
+  position: absolute;
+  top: 27px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 8px;
+  background: rgba(0, 20, 40, .38);
+  color: #b9d8f3;
+  transition: background-color .18s ease, color .18s ease;
+}
+.sidebar-collapse-toggle:hover { background: rgba(91, 184, 254, .18); color: #fff; }
+.sidebar-collapse-toggle:focus-visible { outline-color: #5bb8fe; }
+.sidebar .brand { margin-right: 32px; }
+.app.sidebar-collapsed > .sidebar { width: 80px; padding-left: 12px; padding-right: 12px; }
+.app.sidebar-collapsed > .sidebar .brand { justify-content: center; margin: 0; padding-left: 0; padding-right: 0; }
+.app.sidebar-collapsed > .sidebar .brand > span:last-child,
+.app.sidebar-collapsed > .sidebar .nav-title,
+.app.sidebar-collapsed > .sidebar .nav-section-title,
+.app.sidebar-collapsed > .sidebar .sidebar-note,
+.app.sidebar-collapsed > .sidebar .workspace { display: none; }
+.app.sidebar-collapsed > .sidebar .sidebar-collapse-toggle { right: 8px; top: 72px; }
+.app.sidebar-collapsed > .sidebar .navigation { margin-top: 26px; }
+.app.sidebar-collapsed > .sidebar .nav-item { justify-content: center; gap: 0; padding: 12px 8px; font-size: 0; }
+.app.sidebar-collapsed > .sidebar .nav-item > svg { width: 21px; height: 21px; margin: 0; }
+.app.sidebar-collapsed > .sidebar .nav-group-row { justify-content: center; }
+.app.sidebar-collapsed > .sidebar .nav-group-row > .nav-item { flex: 0 0 100% !important; }
+.app.sidebar-collapsed > .sidebar .nav-group-toggle-btn,
+.app.sidebar-collapsed > .sidebar .nav-submenu { display: none !important; }
+@media (min-width: 861px) {
+  .app.sidebar-collapsed > .main-wrap { margin-left: 80px; width: calc(100% - 80px); }
+}
+@media (min-width: 861px) and (max-width: 1000px) {
+  .app.sidebar-collapsed > .main-wrap { margin-left: 80px; width: calc(100% - 80px); }
+}
+
 @media (max-width: 860px) {
+  .sidebar-collapse-toggle { display: none; }
+  .app > .sidebar .brand { margin-right: 0; }
   .app { display: block; min-height: 100dvh; height: 100dvh; overflow: hidden; }
   .app > .sidebar {
     position: fixed;
