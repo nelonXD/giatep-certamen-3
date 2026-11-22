@@ -1,9 +1,9 @@
 .primary, .secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .navigation { display: grid; gap: 6px; }
 .navigation .nav-title { margin-bottom: 8px; }
-.navigation .nav-item { background: transparent; min-height: 42px; font-size: 13px; }
+.navigation .nav-item { display: flex; flex-direction: row; align-items: center; gap: 8px; min-width: 0; background: transparent; min-height: 42px; font-size: 13px; line-height: 1.25; }
 .navigation .nav-item.active { background: #001428; border-left: 3px solid #0284c7; color: #ffffff; }
-.top-actions { display: flex; gap: 16px; align-items: center; }
+.top-actions { display: flex; gap: 16px; align-items: center; margin-left: auto; }
 .top-actions a, .top-actions button {
   display: flex;
   align-items: center;
