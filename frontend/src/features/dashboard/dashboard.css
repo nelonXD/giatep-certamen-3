@@ -2262,6 +2262,22 @@
 :root[data-theme='dark'] .dash-workspace .dash-priority.has-overdue { background: linear-gradient(135deg, #4a252b, #672b2f); }
 :root[data-theme='dark'] .dash-workspace .dash-priority a.secondary { background: #e5f5ff; color: #07324a; }
 :root[data-theme='dark'] .dash-workspace .dash-filter-actions .dash-reset-filters { background: #17283b; color: #dce7f2; border-color: #42566c; }
+:root[data-theme='dark'] .dash-workspace .dash-presets {
+  background: #0b1a2a;
+  border-color: #42566c;
+}
+:root[data-theme='dark'] .dash-workspace .dash-presets button {
+  color: #c9d8e8;
+}
+:root[data-theme='dark'] .dash-workspace .dash-presets button:hover {
+  color: #ffffff;
+  background: #203b52;
+}
+:root[data-theme='dark'] .dash-workspace .dash-presets button[aria-pressed='true'] {
+  background: #075985;
+  color: #ffffff;
+  box-shadow: none;
+}
 .dash-next-step { min-width: 0; }
 
 /* ==========================================================================
