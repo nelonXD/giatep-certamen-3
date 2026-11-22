@@ -53,10 +53,12 @@ public static class DatosDemostracion
         var nombresEmpresas = new[] { "Red Asistencial Horizonte", "Servicios Clínicos Austral", "Apoyo Sanitario Cordillera", "Mantención Biomédica del Valle", "Gestión Administrativa Los Robles", "Servicios Generales Buen Aire" };
         var empleadores = nombresEmpresas.Select((n, i) => new Empleador { Id = Guid.NewGuid(), Rut = RutDePrueba(90000001 + i), Nombre = "Demo · " + n, Direccion = $"Avenida Simulada {100 + i * 20}", Comuna = "Comuna de demostración", Telefono = "000000000", ActividadEconomica = i == 3 ? "Mantención de equipamiento de salud" : "Servicios de apoyo a establecimientos de salud", Propiedad = i < 2 ? "Pública" : "Privada", TipoEmpresa = i < 3 ? "Principal" : "Contratista", ActividadPrincipal = i < 3 ? null : "Servicios de salud" }).ToArray();
         db.Empleadores.AddRange(empleadores);
-        var nombres = new[] { "Emilia", "Tomás", "Antonia", "Matías", "Florencia", "Vicente", "Josefa", "Benjamín", "Catalina", "Joaquín", "Isidora", "Lucas", "Valentina", "Gabriel", "Amanda" };
+        var nombres = new[] { ("Emilia", "Mujer"), ("Tomás", "Hombre"), ("Antonia", "Mujer"), ("Matías", "Hombre"), ("Florencia", "Mujer"), ("Vicente", "Hombre"), ("Josefa", "Mujer"), ("Benjamín", "Hombre"), ("Catalina", "Mujer"), ("Joaquín", "Hombre"), ("Isidora", "Mujer"), ("Lucas", "Hombre"), ("Valentina", "Mujer"), ("Gabriel", "Hombre"), ("Amanda", "Mujer") };
         var apellidos = new[] { "Rojas", "Vega", "Araya", "Soto", "Fuentes", "Molina", "Tapia", "Vera", "Salas", "Torres", "Muñoz", "Silva", "Pérez", "Leiva", "Castro", "Bravo", "Díaz", "Lagos", "Reyes", "Pinto" };
         var cargos = new[] { "Administrativo de admisión", "Técnico de enfermería", "Auxiliar de servicios", "Encargado de bodega", "Técnico de mantención", "Apoyo clínico" };
-        var trabajadores = Enumerable.Range(0, 600).Select(i => new Trabajador { Id = Guid.NewGuid(), Codigo = $"RUB26-T{i + 1:000}", Nombre = $"Demo · {nombres[i % 15]} {apellidos[i / 15 % 20]} {apellidos[(i / 300 + i / 15 + 2) % 20]}", Cargo = cargos[i % 6], EstablecimientoId = centros[i % 10 < 5 ? 0 : i % 10 < 8 ? 1 : 2].Id, Run = RutDePrueba(50000001 + i), Direccion = $"Pasaje Ficticio {200 + i}", Comuna = "Comuna de demostración", Telefono = "000000000", Sexo = i % 2 == 0 ? "Mujer" : "Hombre", FechaNacimiento = new DateOnly(1970 + i % 30, 1 + i % 12, 1 + i % 27), Nacionalidad = "Chilena", PuebloOriginario = "Ninguno" }).ToArray();
+        var calles = new[] { "Pasaje Los Alerces", "Calle Las Araucarias", "Pasaje Los Canelos", "Avenida Los Maitenes", "Calle Los Boldos", "Pasaje Los Coigües" };
+        var comunas = new[] { "Chillán", "San Carlos", "Bulnes", "Coihueco", "Quillón", "Yungay" };
+        var trabajadores = Enumerable.Range(0, 600).Select(i => new Trabajador { Id = Guid.NewGuid(), Codigo = $"RUB26-T{i + 1:000}", Nombre = $"Demo · {nombres[i % nombres.Length].Item1} {apellidos[i / 15 % 20]} {apellidos[(i / 300 + i / 15 + 2) % 20]}", Cargo = cargos[i % 6], EstablecimientoId = centros[i % 10 < 5 ? 0 : i % 10 < 8 ? 1 : 2].Id, Run = RutDePrueba(50000001 + i), Direccion = $"{calles[i % calles.Length]} {100 + i}", Comuna = comunas[i % comunas.Length], Telefono = "000000000", Sexo = nombres[i % nombres.Length].Item2, FechaNacimiento = new DateOnly(1970 + i % 30, 1 + i % 12, 1 + i % 27), Nacionalidad = "Chilena", PuebloOriginario = "Ninguno", FechaIngreso = $"{2019 + i % 5}-{1 + i % 12:00}", TipoContrato = i % 5 == 0 ? "Plazo fijo" : "Indefinido", TipoIngreso = "Remuneración fija", CategoriaOcupacional = "Trabajador dependiente" }).ToArray();
         db.Trabajadores.AddRange(trabajadores);
         foreach (var e in db.Empleadores.Where(e => e.Nombre == "Antecedente sintético para prueba del formulario")) e.Nombre = "Pruebas previas · empleador sintético";
         db.SaveChanges();
@@ -88,7 +90,7 @@ public static class DatosDemostracion
     {
         var d = new Dictionary<string, string> {
             ["fechaEmision"] = (caso.Tipo == TipoCaso.EnfermedadProfesional ? caso.Fecha.AddDays(Math.Min(30, hoy.DayNumber - caso.Fecha.DayNumber)) : caso.Fecha).ToString("yyyy-MM-dd"), ["empleadorNombre"] = e.Nombre, ["empleadorRut"] = e.Rut, ["empleadorDireccion"] = e.Direccion, ["empleadorComuna"] = e.Comuna, ["empleadorTelefono"] = "000000000", ["actividadEconomica"] = e.ActividadEconomica!, ["propiedad"] = e.Propiedad!, ["tipoEmpresa"] = e.TipoEmpresa!,
-            ["trabajadorNombre"] = t.Nombre, ["trabajadorRun"] = t.Run!, ["trabajadorDireccion"] = t.Direccion!, ["trabajadorComuna"] = t.Comuna!, ["trabajadorTelefono"] = "000000000", ["sexo"] = t.Sexo!, ["fechaNacimiento"] = t.FechaNacimiento!.Value.ToString("yyyy-MM-dd"), ["nacionalidad"] = "Chilena", ["profesion"] = t.Cargo, ["antiguedad"] = "24", ["antiguedadUnidad"] = "Meses", ["tipoContrato"] = "Indefinido", ["tipoIngreso"] = "Remuneración fija", ["categoriaOcupacional"] = "Trabajador dependiente", ["puebloOriginario"] = "Ninguno",
+            ["trabajadorNombre"] = t.Nombre, ["trabajadorRun"] = t.Run!, ["trabajadorDireccion"] = t.Direccion!, ["trabajadorComuna"] = t.Comuna!, ["trabajadorTelefono"] = "000000000", ["sexo"] = t.Sexo!, ["fechaNacimiento"] = t.FechaNacimiento!.Value.ToString("yyyy-MM-dd"), ["nacionalidad"] = "Chilena", ["profesion"] = t.Cargo, ["fechaIngreso"] = t.FechaIngreso!, ["tipoContrato"] = t.TipoContrato!, ["tipoIngreso"] = t.TipoIngreso!, ["categoriaOcupacional"] = t.CategoriaOcupacional!, ["puebloOriginario"] = "Ninguno",
             ["denuncianteNombre"] = "Demo · Representante de prevención", ["denuncianteRun"] = RutDePrueba(50000999), ["denuncianteTelefono"] = "000000000", ["denuncianteClasificacion"] = "Empleador", ["firmaNombre"] = "Documento de demostración sin firma" };
         if (e.ActividadPrincipal is not null) d["actividadPrincipal"] = e.ActividadPrincipal;
         if (caso.Tipo == TipoCaso.Accidente) {
@@ -117,7 +119,19 @@ public static class DatosDemostracion
         var basePlazo = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(fase >= 3 ? plan : fase == 2 ? cierre : inicio, "Pacific SA Standard Time").DateTime);
         for (var i = 0; i < 2; i++) {
             var responsable = i == 0 ? jefe : prevencion; var propuesta = new MedidaInvestigacion { Id = Guid.NewGuid(), InvestigacionId = inv.Id, HechoId = hechos[i].Id, Descripcion = i == 0 ? s.Medida1 : s.Medida2, Responsable = responsable.Nombre, UsuarioResponsableId = responsable.Id, Plazo = basePlazo.AddDays(14 + i * 7 + numero % 14) }; db.MedidasInvestigacion.Add(propuesta);
-            if (fase >= 3) db.Medidas.Add(new() { Id = Guid.NewGuid(), CasoId = caso.Id, PropuestaId = propuesta.Id, Activa = true, Descripcion = propuesta.Descripcion, Responsable = propuesta.Responsable, UsuarioResponsableId = responsable.Id, Plazo = propuesta.Plazo, Completada = fase == 4 || i == 0 && numero % 3 == 0 });
+            if (fase >= 3) {
+                var completada = fase == 4 || i == 0 && numero % 3 == 0;
+                var implementada = plan.AddTicks((terminado - plan).Ticks / 3);
+                var revisada = plan.AddTicks((terminado - plan).Ticks * 2 / 3);
+                var medida = new MedidaRegistro { Id = Guid.NewGuid(), CasoId = caso.Id, PropuestaId = propuesta.Id, Activa = true, Descripcion = propuesta.Descripcion, Responsable = propuesta.Responsable, UsuarioResponsableId = responsable.Id, Plazo = propuesta.Plazo, Completada = completada,
+                    ImplementadaEn = completada ? implementada : null, ComentarioCumplimiento = completada ? $"Se implementó la medida y se registró su verificación: {propuesta.Descripcion}." : null,
+                    RevisadaEn = completada ? revisada : null, RevisorId = completada ? prevencion.Id : null, Revision = completada ? "Implementación revisada y aprobada según el acta de verificación de demostración." : null };
+                db.Medidas.Add(medida);
+                if (completada) {
+                    var comprobante = new PdfExportador().Exportar(new Reporte("Acta ficticia de verificación", $"Documento de demostración. Caso {caso.Codigo}. No corresponde a un evento real.", ["Elemento", "Detalle"], [new object?[] { "Medida", propuesta.Descripcion }, new object?[] { "Responsable", responsable.Nombre }, new object?[] { "Resultado", "Implementación revisada y aprobada" }], 1, false));
+                    db.EvidenciasMedidas.Add(new EvidenciaMedida { Id = Guid.NewGuid(), MedidaId = medida.Id, UsuarioId = responsable.Id, Fecha = implementada, Nombre = $"verificacion-demo-{caso.Codigo}-{i + 1}.pdf", Tipo = "application/pdf", Contenido = comprobante });
+                }
+            }
         }
     }
 }

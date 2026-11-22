@@ -16,6 +16,14 @@ public static class RegistroRutEndpoints
     }
     public static void MapRegistrosRut(this WebApplication app)
     {
+        app.MapGet("/api/v1/trabajadores/por-nombre", (string nombre, GiatepDbContext db) => {
+            var consulta = nombre.Trim();
+            if (consulta.Length < 2 || consulta.Length > 120) throw new ValidationException("Escribe entre 2 y 120 caracteres del nombre.");
+            var busqueda = consulta.ToLowerInvariant();
+            return db.Trabajadores.AsNoTracking().Where(t => t.Run != null && t.Nombre.ToLower().Contains(busqueda))
+                .OrderBy(t => t.Nombre).ThenBy(t => t.Run).Take(8)
+                .Select(t => new SugerenciaRutDTO(t.Run!, t.Nombre, t.Activo)).ToArray();
+        }).RequireAuthorization("Prevencion").WithTags("Registro por RUT");
         app.MapGet("/api/v1/trabajadores/sugerencias", (string rut, GiatepDbContext db) => {
             var prefijo = Prefijo(rut);
             return db.Trabajadores.AsNoTracking().Where(t => t.Run != null && t.Run.StartsWith(prefijo)).OrderBy(t => t.Run).Take(8).Select(t => new SugerenciaRutDTO(t.Run!, t.Nombre, t.Activo)).ToArray();

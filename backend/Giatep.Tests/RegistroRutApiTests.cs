@@ -28,10 +28,14 @@ public class RegistroRutApiTests(GiatepFactory factory) : IClassFixture<GiatepFa
         using var c = await Cliente();
         var trabajadores = await c.GetFromJsonAsync<JsonElement>("/api/v1/trabajadores/sugerencias?rut=62"); Assert.Equal(8, trabajadores.GetArrayLength());
         Assert.All(trabajadores.EnumerateArray(), t => Assert.StartsWith("62", t.GetProperty("rut").GetString()));
+        var porNombre = await c.GetFromJsonAsync<JsonElement>("/api/v1/trabajadores/por-nombre?nombre=sugerencia%2012");
+        Assert.Contains(porNombre.EnumerateArray(), t => t.GetProperty("nombre").GetString() == "Persona sugerencia 12");
+        Assert.Equal(HttpStatusCode.BadRequest, (await c.GetAsync("/api/v1/trabajadores/por-nombre?nombre=a")).StatusCode);
         var empleadores = await c.GetFromJsonAsync<JsonElement>("/api/v1/empleadores/sugerencias?rut=96.000"); Assert.Equal(8, empleadores.GetArrayLength());
         Assert.Equal(HttpStatusCode.BadRequest, (await c.GetAsync("/api/v1/trabajadores/sugerencias?rut=6")).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await c.GetAsync("/api/v1/empleadores/sugerencias?rut=%25")).StatusCode);
         using var jefe = await Cliente("jefatura"); Assert.Equal(HttpStatusCode.Forbidden, (await jefe.GetAsync("/api/v1/trabajadores/sugerencias?rut=62")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await jefe.GetAsync("/api/v1/trabajadores/por-nombre?nombre=sugerencia")).StatusCode);
     }
     [Fact]
     public async Task RegistraDesdeCasoYReutilizaPorRutSinIdentificadoresNiSelectores()

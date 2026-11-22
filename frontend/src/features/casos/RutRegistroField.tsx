@@ -9,6 +9,31 @@ export function rutValido(v: string) {
   const dv = 11 - suma % 11; return rut.at(-1) === (dv === 11 ? '0' : dv === 10 ? 'K' : String(dv));
 }
 interface Sugerencia { rut: string; nombre: string; activo: boolean }
+function BuscarTrabajadorPorNombre({ elegir }: { elegir: (item: Sugerencia) => void }) {
+  const [nombre, setNombre] = useState('');
+  const [resultados, setResultados] = useState<Sugerencia[]>([]);
+  const [mensaje, setMensaje] = useState('');
+  useEffect(() => {
+    const valor = nombre.trim();
+    if (valor.length < 2) { setResultados([]); setMensaje(''); return; }
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const items = await request<Sugerencia[]>(`/trabajadores/por-nombre?nombre=${encodeURIComponent(valor)}`, { signal: controller.signal });
+        if (controller.signal.aborted) return;
+        setResultados(items); setMensaje(items.length ? `${items.length} coincidencias. Selecciona un trabajador.` : 'Sin coincidencias. Puedes ingresar el RUN y sus datos.');
+      } catch (error) {
+        if (!controller.signal.aborted) { setResultados([]); setMensaje(`No se pudo buscar: ${(error as Error).message}`); }
+      }
+    }, 300);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [nombre]);
+  return <div className="worker-name-lookup">
+    <Field label="Buscar trabajador por nombre" type="search" maxLength={120} value={nombre} onChange={e => { setNombre(e.target.value); setResultados([]); }}/>
+    <p className="help" role="status">{mensaje}</p>
+    {resultados.length > 0 && <ul aria-label="Trabajadores encontrados">{resultados.map(item => <li key={item.rut}><button type="button" className="secondary" onClick={() => { setResultados([]); setNombre(''); setMensaje(''); elegir(item); }}>{item.nombre} · {item.rut.slice(0, -1)}-{item.rut.slice(-1)}{item.activo ? '' : ' · Inactivo'}</button></li>)}</ul>}
+  </div>;
+}
 export function RutRegistroField({ tipo, label, value, onChange, onFound, onBusy }: { tipo: 'trabajador' | 'empleador'; label: string; value: string; onChange: (value: string) => void; onFound: (registro: RegistroRut, rut: string) => void; onBusy: (busy: boolean) => void }) {
   const listaId = useId(), wrap = useRef<HTMLDivElement>(null);
   const [consultado, setConsultado] = useState(false), [mensaje, setMensaje] = useState(''), [sugerencias, setSugerencias] = useState<Sugerencia[]>([]), [prefijoResultados, setPrefijoResultados] = useState(''), [focused, setFocused] = useState(false), [activo, setActivo] = useState(-1);
@@ -41,7 +66,7 @@ export function RutRegistroField({ tipo, label, value, onChange, onFound, onBusy
     return () => { clearTimeout(timer); controller.abort(); };
   }, [value, rut, consultado, tipo]);
   function elegir(item: Sugerencia) { setSugerencias([]); setActivo(-1); setConsultado(true); onChange(item.rut); }
-  return <div className="rut-lookup"><div className="rut-input-wrap" ref={wrap}><Field label={label} required value={value} maxLength={16} autoComplete="off" spellCheck={false} role="combobox" aria-label={label} aria-autocomplete="list" aria-haspopup="listbox" aria-expanded={abierto} aria-controls={listaId} aria-activedescendant={abierto && activo >= 0 ? `${listaId}-${activo}` : undefined} help="Escribe el RUT: las sugerencias aparecen mientras escribes. Si es nuevo, completa sus datos debajo." onFocus={() => setFocused(true)} onClick={() => setFocused(true)} onBlur={() => setFocused(false)} onChange={e => { const v = e.target.value; e.currentTarget.setCustomValidity(v && !rutValido(v) ? 'Completa el RUT/RUN y su dígito verificador.' : ''); setConsultado(true); setFocused(true); onChange(v); }} onKeyDown={e => {
+  return <div className="rut-lookup">{tipo === 'trabajador' && <BuscarTrabajadorPorNombre elegir={elegir}/>}<div className="rut-input-wrap" ref={wrap}><Field label={label} required value={value} maxLength={16} autoComplete="off" spellCheck={false} role="combobox" aria-label={label} aria-autocomplete="list" aria-haspopup="listbox" aria-expanded={abierto} aria-controls={listaId} aria-activedescendant={abierto && activo >= 0 ? `${listaId}-${activo}` : undefined} help="Escribe el RUT: las sugerencias aparecen mientras escribes. Si es nuevo, completa sus datos debajo." onFocus={() => setFocused(true)} onClick={() => setFocused(true)} onBlur={() => setFocused(false)} onChange={e => { const v = e.target.value; e.currentTarget.setCustomValidity(v && !rutValido(v) ? 'Completa el RUT/RUN y su dígito verificador.' : ''); setConsultado(true); setFocused(true); onChange(v); }} onKeyDown={e => {
     if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && sugerencias.length && prefijoResultados === rut) { e.preventDefault(); setFocused(true); setActivo(i => e.key === 'ArrowDown' ? (i + 1) % sugerencias.length : i <= 0 ? sugerencias.length - 1 : i - 1); }
     else if (e.key === 'Escape') { e.preventDefault(); setFocused(false); setActivo(-1); }
     else if (e.key === 'Enter') { e.preventDefault(); if (abierto) elegir(sugerencias[activo >= 0 ? activo : 0]); else if (!rutValido(value)) e.currentTarget.reportValidity(); }

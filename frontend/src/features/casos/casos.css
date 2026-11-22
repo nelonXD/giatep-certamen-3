@@ -45,6 +45,10 @@
   animation: casosFadeIn 0.3s ease-out;
 }
 
+.worker-name-lookup { margin-bottom: 16px; }
+.worker-name-lookup ul { list-style: none; display: grid; gap: 6px; margin: 8px 0; padding: 0; }
+.worker-name-lookup li button { width: 100%; justify-content: flex-start; text-align: left; white-space: normal; }
+
 @keyframes casosFadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }

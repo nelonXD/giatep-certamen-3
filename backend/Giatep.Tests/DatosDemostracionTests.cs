@@ -39,5 +39,12 @@ public class DatosDemostracionTests
         Assert.Equal(conteos, new[] { db.Casos.Count(), db.Investigaciones.Count(), db.Auditorias.Count() }); Assert.True(db.Casos.Any(c => c.Id == previo.Id));
         Assert.All(db.Trabajadores.ToArray(), t => Assert.True(Denuncias.RutValido(t.Run!)));
         Assert.All(db.Empleadores.ToArray(), e => Assert.True(Denuncias.RutValido(e.Rut)));
+        foreach (var medida in db.Medidas.Where(m => m.Completada).ToArray()) {
+            var comprobante = db.EvidenciasMedidas.Single(e => e.MedidaId == medida.Id);
+            Assert.NotNull(medida.ImplementadaEn); Assert.NotNull(medida.RevisadaEn);
+            Assert.True(medida.RevisadaEn >= medida.ImplementadaEn);
+            Assert.Equal(medida.ImplementadaEn, comprobante.Fecha);
+            Assert.NotEmpty(db.Archivos.Leer(comprobante));
+        }
     }
 }
