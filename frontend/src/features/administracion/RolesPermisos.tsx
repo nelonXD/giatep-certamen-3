@@ -28,8 +28,8 @@ export const perfiles = [
 
 export function nombreRol(value?: string) { return perfiles.find(p => p.value === value)?.nombre ?? value; }
 
-export function RolesPermisos({ value, onChange, disabled, centros, establecimientoId }: {
-  value: string; onChange: (value: string) => void; disabled: boolean;
+export function RolesPermisos({ value, onChange, disabled, locked = false, centros, establecimientoId }: {
+  value: string; onChange: (value: string) => void; disabled: boolean; locked?: boolean;
   centros: { id: string; nombre?: string; activo?: boolean }[]; establecimientoId?: string;
 }) {
   const id = useId();
@@ -38,9 +38,10 @@ export function RolesPermisos({ value, onChange, disabled, centros, establecimie
     <fieldset className="role-picker" disabled={disabled} aria-describedby={`${id}-ayuda`}>
       <legend>Rol y permisos</legend>
       <p id={`${id}-ayuda`} className="help">Selecciona un perfil. Cada uno incluye los permisos necesarios para su función.</p>
+      {locked && <p className="help">El rol de esta cuenta administradora está protegido.</p>}
       <div className="role-options">
         {perfiles.map(p => <label key={p.value} className={`role-option${value === p.value ? ' selected' : ''}`}>
-          <input type="radio" name="rol" value={p.value} checked={value === p.value} required
+          <input type="radio" name="rol" value={p.value} checked={value === p.value} required disabled={locked && p.value !== value}
             aria-describedby={`${id}-${p.value}-descripcion`} onChange={() => onChange(p.value)}/>
           <span><span className="role-option-title"><p.icono size={20} aria-hidden="true"/><strong>{p.nombre}</strong></span>
             <span id={`${id}-${p.value}-descripcion`} className="role-option-description">{p.descripcion}</span>

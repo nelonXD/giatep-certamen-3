@@ -60,6 +60,20 @@ public class ApiTests(GiatepFactory factory) : IClassFixture<GiatepFactory>
     [Fact] public async Task CredencialesIncorrectasNoIngresan() => Assert.Equal(HttpStatusCode.Unauthorized, (await factory.CreateClient().PostAsJsonAsync("/api/v1/auth/login", new { cuenta = "prevencion", password = "incorrecta" })).StatusCode);
     [Fact] public async Task PrevencionNoAdministra() { using var c = await Login("prevencion"); Assert.Equal(HttpStatusCode.Forbidden, (await c.GetAsync("/api/v1/admin/usuarios")).StatusCode); }
     [Fact] public async Task AdminNoInvestiga() { using var c = await Login("admin"); Assert.Equal(HttpStatusCode.Forbidden, (await c.GetAsync("/api/v1/casos")).StatusCode); }
+    [Fact] public async Task AdministradorSistemaNoPuedeCambiarRolNiDesactivarse()
+    {
+        using var admin = await Login("admin");
+        var usuario = await admin.GetFromJsonAsync<JsonElement>("/api/v1/auth/me");
+        var id = usuario.GetProperty("id").GetString();
+        var alta = await admin.PostAsJsonAsync("/api/v1/admin/usuarios", new { cuenta = "admin_auxiliar", nombre = "Administrador auxiliar", rol = "Administrador", establecimientoId = (string?)null, activo = true, password = GiatepFactory.Password });
+        alta.EnsureSuccessStatusCode();
+        using var auxiliar = await Login("admin_auxiliar");
+        var baseDto = new { cuenta = "admin", nombre = "Administrador", rol = "Prevencion", establecimientoId = (string?)null, activo = true, password = (string?)null };
+        Assert.Equal(HttpStatusCode.Conflict, (await admin.PutAsJsonAsync($"/api/v1/admin/usuarios/{id}", baseDto)).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await auxiliar.PutAsJsonAsync($"/api/v1/admin/usuarios/{id}", baseDto)).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await auxiliar.PutAsJsonAsync($"/api/v1/admin/usuarios/{id}", new { cuenta = "admin", nombre = "Administrador", rol = "Administrador", establecimientoId = (string?)null, activo = false, password = (string?)null })).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await auxiliar.PutAsJsonAsync($"/api/v1/admin/usuarios/{id}", new { cuenta = "otra_cuenta", nombre = "Administrador", rol = "Administrador", establecimientoId = (string?)null, activo = true, password = (string?)null })).StatusCode);
+    }
     [Fact] public async Task AdministradorRegistraTrabajadorParaAutocompletarYFiltraAuditoria()
     {
         using var admin = await Login("admin"); using var prevencion = await Login("prevencion");

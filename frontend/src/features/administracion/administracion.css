@@ -729,21 +729,19 @@
   border-top: 1px solid var(--admin-border);
   margin: 24px 0 0;
   padding: 20px 0 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
   min-width: 0;
 }
 
 .admin-state legend {
-  float: left;
-  width: 100%;
   font-size: 14px;
   font-weight: 600;
   padding: 0;
   margin-bottom: 14px;
   color: var(--admin-primary);
 }
+
+.admin-state-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.admin-state label:has(input:disabled) { opacity: .65; cursor: not-allowed; }
 
 .admin-state label {
   display: flex;
@@ -1124,7 +1122,7 @@
   .admin-editor-heading h2 {
     font-size: 20px;
   }
-  .admin-state {
+  .admin-state-options {
     grid-template-columns: 1fr;
   }
   .admin-form-footer {

@@ -103,6 +103,8 @@ public static class GestionEndpoints
         if (id == acceso.UsuarioId && (!dto.Activo || dto.Rol != "Administrador")) throw new ReglaNegocioException("No puedes desactivar tu propia cuenta ni retirarte el rol administrador.");
         if (db.Usuarios.Any(u => u.Cuenta == dto.Cuenta.ToLower().Trim() && u.Id != id)) throw new ReglaNegocioException("La cuenta ya existe.");
         var row = id.HasValue ? db.Usuarios.Find(id) ?? throw new KeyNotFoundException() : new Usuario { Id = Guid.NewGuid() };
+        if (id.HasValue && row.Cuenta.Equals("admin", StringComparison.OrdinalIgnoreCase) && (!dto.Activo || dto.Rol != "Administrador" || !dto.Cuenta.Trim().Equals("admin", StringComparison.OrdinalIgnoreCase)))
+            throw new ReglaNegocioException("La cuenta administradora del sistema debe permanecer activa, con su nombre y rol originales.");
         if ((db.Medidas.Any(m => m.UsuarioResponsableId == row.Id && !m.Completada) || db.MedidasInvestigacion.Any(m => m.UsuarioResponsableId == row.Id && db.Investigaciones.Any(i => i.Id == m.InvestigacionId && i.PlanIniciadoEn == null))) && (!dto.Activo || row.EstablecimientoId != (dto.Rol == "Jefatura" ? dto.EstablecimientoId : null) || row.Rol != dto.Rol)) throw new ReglaNegocioException("La cuenta tiene medidas pendientes; complétalas antes de desactivarla o cambiar su ámbito.");
         if (!id.HasValue || !string.IsNullOrEmpty(dto.Password)) {
             if (dto.Password is null || dto.Password.Length < 12 || dto.Password.Length > 200) throw new ValidationException("La contraseña debe tener entre 12 y 200 caracteres.");

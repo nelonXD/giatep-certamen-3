@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Check, LockKeyhole, Save, X } from 'lucide-react';
 import { Field, Select, Message } from '../../components/common/UI';
 import { request } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 import { RolesPermisos } from './RolesPermisos';
 import type { RegistroAdmin, SeccionAdmin } from './admin.types';
 import schema from '../../../../shared/denuncias.json';
@@ -15,6 +16,9 @@ export function AdminForm({ seccion, registro, centros, onCancel, onSaved, onBus
   seccion: SeccionAdmin; registro: RegistroAdmin; centros: RegistroAdmin[];
   onCancel: () => void; onSaved: () => void; onBusy: (busy: boolean) => void;
 }) {
+  const usuarioActual = useAuth();
+  const esCuentaSistema = seccion === 'usuarios' && !!registro.id && registro.cuenta?.toLowerCase() === 'admin';
+  const cuentaProtegida = seccion === 'usuarios' && !!registro.id && (registro.id === usuarioActual.id || esCuentaSistema);
   const [rol, setRol] = useState(registro.rol || 'Prevencion');
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
   const form = useRef<HTMLFormElement>(null);
@@ -49,7 +53,7 @@ export function AdminForm({ seccion, registro, centros, onCancel, onSaved, onBus
         <p className="help">Los campos marcados con * son obligatorios.</p>
         <div className="form-grid">
           <Field label={seccion === 'usuarios' || seccion === 'trabajadores' ? 'Nombre completo' : 'Nombre del establecimiento'} name="nombre" required minLength={3} maxLength={120} defaultValue={registro.nombre}/>
-          {seccion === 'usuarios' && <Field label="Nombre de usuario" name="cuenta" required minLength={3} maxLength={50} pattern="[a-zA-Z0-9._\-]+" help="Letras, números, puntos o guiones. Sin espacios." defaultValue={registro.cuenta}/>}
+          {seccion === 'usuarios' && <Field label="Nombre de usuario" name="cuenta" required minLength={3} maxLength={50} pattern="[a-zA-Z0-9._\-]+" readOnly={esCuentaSistema} help={esCuentaSistema ? 'El nombre de la cuenta administradora del sistema está protegido.' : 'Letras, números, puntos o guiones. Sin espacios.'} defaultValue={registro.cuenta}/>}
           {seccion === 'trabajadores' && <>
             <Field label="Código interno" name="codigo" required minLength={3} maxLength={30} defaultValue={registro.codigo}/>
             <Field label="Cargo" name="cargo" required minLength={3} maxLength={100} defaultValue={registro.cargo}/>
@@ -72,14 +76,17 @@ export function AdminForm({ seccion, registro, centros, onCancel, onSaved, onBus
           {seccion === 'establecimientos' && <Field label="Dirección" name="direccion" required minLength={3} maxLength={200} defaultValue={registro.direccion}/>}
         </div>
       </div>
-      {seccion === 'usuarios' && <RolesPermisos value={rol} onChange={setRol} disabled={busy} centros={centros} establecimientoId={registro.establecimientoId}/>}
+      {seccion === 'usuarios' && <RolesPermisos value={rol} onChange={setRol} disabled={busy} locked={cuentaProtegida} centros={centros} establecimientoId={registro.establecimientoId}/>}
       {seccion === 'usuarios' && <div className="admin-form-section admin-password"><h3><LockKeyhole size={17} aria-hidden="true"/>{registro.id ? 'Cambiar contraseña' : 'Contraseña de acceso'}</h3>
         <Field label={registro.id ? 'Nueva contraseña (opcional)' : 'Contraseña inicial'} name="password" type="password" autoComplete="new-password" required={!registro.id} minLength={12} maxLength={200}
           help={registro.id ? 'Deja este campo vacío para conservar la contraseña actual. Al guardar una nueva, también se quita el bloqueo de acceso.' : 'Utiliza al menos 12 caracteres.'}/>
       </div>}
       <fieldset className="admin-state"><legend>Estado del {nombre}</legend>
+        {cuentaProtegida && <p className="help">Esta cuenta administradora no puede cambiar de rol ni desactivarse.</p>}
+        <div className="admin-state-options">
         <label><input type="radio" name="activo" value="true" defaultChecked={registro.activo !== false}/><span><strong>Activo</strong><small>{seccion === 'usuarios' ? 'Puede iniciar sesión y utilizar sus permisos.' : 'Disponible para su uso en el sistema.'}</small></span><Check size={18} aria-hidden="true"/></label>
-        <label><input type="radio" name="activo" value="false" defaultChecked={registro.activo === false}/><span><strong>Inactivo</strong><small>Conserva sus datos y su historial.</small></span></label>
+        <label><input type="radio" name="activo" value="false" defaultChecked={registro.activo === false} disabled={cuentaProtegida}/><span><strong>Inactivo</strong><small>Conserva sus datos y su historial.</small></span></label>
+        </div>
       </fieldset>
     </fieldset>
     <div className="admin-form-footer"><span>Los cambios se guardan en la auditoría.</span><div>

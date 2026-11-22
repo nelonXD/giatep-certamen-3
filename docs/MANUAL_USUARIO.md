@@ -42,7 +42,7 @@ En Administración puedes agregar y editar usuarios, establecimientos y trabajad
 
 En Trabajadores, registra el RUN y los antecedentes disponibles para que Prevención pueda recuperarlos al completar una denuncia DIAT o DIEP. El RUN es opcional para registros antiguos, pero es necesario para el autocompletado. Puedes buscar por nombre, código o RUN y filtrar por estado.
 
-Para una baja, elige Inactivo y confirma. El sistema conserva el historial. No puedes desactivar tu propia cuenta ni retirarte el rol administrador. Las cuentas con medidas pendientes deben resolverlas antes de cambiar su rol, centro o estado. Los establecimientos con usuarios activos tampoco pueden desactivarse.
+Para una baja, elige Inactivo y confirma. El sistema conserva el historial. No puedes desactivar tu propia cuenta ni retirarte el rol administrador. La cuenta del sistema `admin` tampoco puede desactivarse, renombrarse ni cambiar de rol desde otra cuenta; se pueden editar sus demás datos y su contraseña. Las cuentas con medidas pendientes deben resolverlas antes de cambiar su rol, centro o estado. Los establecimientos con usuarios activos tampoco pueden desactivarse.
 
 La pestaña Auditoría muestra actor, fecha, entidad y acción. Puedes buscar por actor, entidad o acción, acotar por fechas y cambiar el orden. Expande Ver cambios para consultar los campos registrados. El administrador puede consultar dashboard y reportes; no opera investigaciones.
 
