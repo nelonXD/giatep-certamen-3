@@ -3,7 +3,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 export interface EmpleadorOpcion { id: string; rut: string; nombre: string; direccion: string; comuna: string; telefono?: string; actividadEconomica?: string; propiedad?: string; tipoEmpresa?: string; actividadPrincipal?: string }
 export interface Opciones { empleadores?: EmpleadorOpcion[]; establecimientos: { id: string; nombre: string; direccion?: string }[]; trabajadores: { id: string; nombre: string; establecimientoId: string; cargo?: string; run?: string; direccion?: string; comuna?: string; telefono?: string; sexo?: string; fechaNacimiento?: string; nacionalidad?: string; puebloOriginario?: string; otroPueblo?: string }[]; responsables: { id: string; nombre: string; rol: string; establecimientoId?: string }[]; categorias: string[] }
 export function Message({ error, success }: { error?: string; success?: string }) { return <>{error && <div className="message error" role="alert">{error}</div>}{success && <div className="message success" role="status">{success}</div>}</>; }
-export function Loading() { return <p className="empty" role="status">Cargando información…</p>; }
+export function Loading() { return <div className="content-loading" role="status"><span className="content-loading-mark" aria-hidden="true"/><span>Cargando información…</span></div>; }
 export function Empty({ children = 'No hay registros para estos filtros.' }: { children?: ReactNode }) { return <div className="empty"><h3>Sin resultados</h3><p>{children}</p></div>; }
 export function Field({ label, help, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string; help?: string }) {
   const id = useId(); const [error, setError] = useState('');
