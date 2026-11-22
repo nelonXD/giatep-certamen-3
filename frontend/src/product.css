@@ -885,3 +885,27 @@ td > .row-link { margin-right: 12px; }
 :root[data-theme='dark'] .evidence-options > button.selected { background: #17364c; border-color: #55b9ed; color: #ffffff; box-shadow: 0 0 0 1px #55b9ed; }
 :root[data-theme='dark'] .evidence-options > button.selected strong { color: #ffffff; }
 :root[data-theme='dark'] .evidence-options > button.selected small { color: #dce7f2; }
+:root[data-theme='dark'] .denuncia-group legend,
+:root[data-theme='dark'] .denuncia-summary summary,
+:root[data-theme='dark'] .research-facts dd {
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .research-facts dt,
+:root[data-theme='dark'] .investigation-progress small,
+:root[data-theme='dark'] .admin-list-footer span {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .admin-status.active {
+  color: #8ce3bf;
+}
+
+:root[data-theme='dark'] .dash-filter-pending-badge:not(.pending) {
+  color: #075985;
+}
+
+:root[data-theme='dark'] .primary {
+  background: #0369a1;
+  border-color: #0369a1;
+}
