@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { Users, Building2, BriefcaseBusiness, History, Plus, Search, Pencil, RefreshCw, ArrowUpRight, ShieldCheck, UserCheck } from 'lucide-react';
+import { UserRoundCog, Landmark, HardHat, ScrollText, History as HistoryIcon, Building2, Plus, Search, Pencil, RefreshCw, ArrowUpRight, ShieldCheck, UserCheck } from 'lucide-react';
 import { useLoad } from '../../hooks/useLoad';
 import { Field, Select, Message, Loading, Pagination } from '../../components/common/UI';
 import { nombreRol, perfiles } from './RolesPermisos';
@@ -9,10 +9,10 @@ import type { ListaAdmin, RegistroAdmin, SeccionAdmin } from './admin.types';
 import './administracion.css';
 
 export const seccionesAdmin = [
-  { id: 'usuarios', nombre: 'Usuarios', singular: 'usuario', icono: Users, detalle: 'Cuentas y permisos', descripcion: 'Administra las cuentas y el acceso de cada persona.' },
-  { id: 'establecimientos', nombre: 'Establecimientos', singular: 'establecimiento', icono: Building2, detalle: 'Centros de trabajo', descripcion: 'Mantén actualizados los centros y sus direcciones.' },
-  { id: 'trabajadores', nombre: 'Trabajadores', singular: 'trabajador', icono: BriefcaseBusiness, detalle: 'Personas registradas', descripcion: 'Consulta y actualiza los registros de los trabajadores.' },
-  { id: 'auditoria', nombre: 'Auditoría', singular: 'movimiento', icono: History, detalle: 'Historial de cambios', descripcion: 'Revisa quién realizó cada cambio y cuándo ocurrió.' }
+  { id: 'usuarios', nombre: 'Usuarios', singular: 'usuario', icono: UserRoundCog, detalle: 'Cuentas y permisos', descripcion: 'Administra las cuentas y el acceso de cada persona.' },
+  { id: 'establecimientos', nombre: 'Establecimientos', singular: 'establecimiento', icono: Landmark, detalle: 'Centros de trabajo', descripcion: 'Mantén actualizados los centros y sus direcciones.' },
+  { id: 'trabajadores', nombre: 'Trabajadores', singular: 'trabajador', icono: HardHat, detalle: 'Personas registradas', descripcion: 'Consulta y actualiza los registros de los trabajadores.' },
+  { id: 'auditoria', nombre: 'Auditoría', singular: 'movimiento', icono: ScrollText, detalle: 'Historial de cambios', descripcion: 'Revisa quién realizó cada cambio y cuándo ocurrió.' }
 ] as const;
 const fecha = new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeZone: 'America/Santiago' });
 const hora = new Intl.DateTimeFormat('es-CL', { timeStyle: 'short', timeZone: 'America/Santiago' });
@@ -49,7 +49,7 @@ export function AdminPage({ seccionId = 'usuarios' }: { seccionId?: SeccionAdmin
   const filtrado = !!buscar || estado !== 'todos' || perfil !== 'todos' || !!desde || !!hasta;
   const resumenFuente = tab === 'usuarios' ? usuarios.data : centros.data;
   const resumen = [
-    { titulo: tab === 'usuarios' ? 'Cuentas registradas' : 'Centros registrados', valor: resumenFuente?.length, icono: tab === 'usuarios' ? Users : Building2 },
+    { titulo: tab === 'usuarios' ? 'Cuentas registradas' : 'Centros registrados', valor: resumenFuente?.length, icono: tab === 'usuarios' ? UserRoundCog : Landmark },
     { titulo: tab === 'usuarios' ? 'Usuarios activos' : 'Centros activos', valor: resumenFuente?.filter(r => r.activo).length, icono: UserCheck },
     { titulo: tab === 'usuarios' ? 'Usuarios inactivos' : 'Centros inactivos', valor: resumenFuente?.filter(r => !r.activo).length, icono: ShieldCheck }
   ];
@@ -80,8 +80,8 @@ export function AdminPage({ seccionId = 'usuarios' }: { seccionId?: SeccionAdmin
         {tab === 'auditoria' && <><Field label="Desde" type="date" value={desde} max={hasta || undefined} onChange={e => { setDesde(e.target.value); setPage(1); }}/><Field label="Hasta" type="date" value={hasta} min={desde || undefined} onChange={e => { setHasta(e.target.value); setPage(1); }}/></>}
         <Select label="Orden" value={orden} onChange={e => { setOrden(e.target.value); setPage(1); }}><option value="desc">{tab === 'auditoria' ? 'Más recientes' : 'Nombre Z–A'}</option><option value="asc">{tab === 'auditoria' ? 'Más antiguos' : 'Nombre A–Z'}</option></Select>
         {filtrado && <button className="admin-clear" type="button" onClick={limpiar}>Limpiar filtros</button>}
-      </div>{tab === 'auditoria' && <div className="admin-audit-note"><History size={16} aria-hidden="true"/><span>Las horas corresponden a Santiago.</span></div>}
-      {result.loading ? <div className="admin-loading"><Loading/></div> : result.error ? <div className="admin-empty"><History size={28} aria-hidden="true"/><h3>No pudimos cargar los registros</h3><p>Intenta actualizar el listado.</p><button className="secondary" onClick={actualizar}>Volver a intentar</button></div> : !visibles.length ?
+      </div>{tab === 'auditoria' && <div className="admin-audit-note"><HistoryIcon size={16} aria-hidden="true"/><span>Las horas corresponden a Santiago.</span></div>}
+      {result.loading ? <div className="admin-loading"><Loading/></div> : result.error ? <div className="admin-empty"><HistoryIcon size={28} aria-hidden="true"/><h3>No pudimos cargar los registros</h3><p>Intenta actualizar el listado.</p><button className="secondary" onClick={actualizar}>Volver a intentar</button></div> : !visibles.length ?
         <div className="admin-empty"><Search size={28} aria-hidden="true"/><h3>{filtrado ? 'No encontramos coincidencias' : `Todavía no hay ${seccion.nombre.toLowerCase()}`}</h3><p>{filtrado ? 'Prueba con otro nombre o ajusta los filtros.' : 'Los registros aparecerán aquí cuando se incorporen al sistema.'}</p>{filtrado && <button className="secondary" onClick={limpiar}>Limpiar filtros</button>}</div> :
         <div><p className="admin-table-hint">Desliza la tabla hacia los lados para ver todos los datos y acciones.</p><div className="table-wrap" tabIndex={0} role="region" aria-label={`Tabla de ${seccion.nombre.toLowerCase()}, desplazable horizontalmente`}><table className="admin-table"><caption className="sr-only">Listado de {seccion.nombre.toLowerCase()}</caption><thead><tr>
           {(tab === 'auditoria' ? ['Fecha y hora', 'Realizado por', 'Registro', 'Movimiento', 'Detalle'] : tab === 'usuarios' ? ['Usuario', 'Perfil de acceso', 'Ámbito', 'Estado', ''] : tab === 'trabajadores' ? ['Trabajador', 'Cargo', 'Establecimiento', 'Estado', ''] : ['Establecimiento', 'Dirección', 'Estado', '']).map((c, i) => <th key={i} scope="col">{c || <span className="sr-only">Acciones</span>}</th>)}
