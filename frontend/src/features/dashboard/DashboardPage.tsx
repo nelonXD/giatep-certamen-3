@@ -47,7 +47,7 @@ export function DashboardPage() {
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
   const botonFiltrosRef = useRef<HTMLButtonElement>(null);
   const [selecciones, setSelecciones] = useState<Selecciones>({});
-  const options = useLoad<Opciones>('/opciones');
+  const options = useLoad<Pick<Opciones, 'establecimientos'>>('/opciones?soloEstablecimientos=true');
   const periodoSeleccionado = selecciones.mes ? (() => {
     const [year, month] = selecciones.mes!.split('-').map(Number);
     const inicioMes = `${selecciones.mes}-01`, finMes = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);

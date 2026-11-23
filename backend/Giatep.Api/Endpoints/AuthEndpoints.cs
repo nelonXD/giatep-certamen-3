@@ -29,7 +29,12 @@ public static class AuthEndpoints
                 db.SaveChanges();
                 return Results.Problem(statusCode: 401, title: "Credenciales inválidas o cuenta temporalmente bloqueada.");
             }
-            user.Fallos = 0; user.BloqueadoHasta = null; db.SaveChanges();
+            if (user.Fallos != 0 || user.BloqueadoHasta is not null)
+            {
+                user.Fallos = 0;
+                user.BloqueadoHasta = null;
+                db.SaveChanges();
+            }
             var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, user.Id.ToString()), new(ClaimTypes.Name, user.Nombre), new(ClaimTypes.Role, user.Rol), new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) };
             claims.Add(new("version", Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(user.PasswordHash)))));
             if (user.EstablecimientoId.HasValue) claims.Add(new("establecimiento", user.EstablecimientoId.ToString()!));

@@ -140,7 +140,7 @@ builder.Services.AddAuthorization(options => {
 builder.Services.AddRateLimiter(options => {
     options.RejectionStatusCode = 429;
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(c => RateLimitPartition.GetFixedWindowLimiter(c.Connection.RemoteIpAddress?.ToString() ?? "local", _ => new() { PermitLimit = 240, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
-    options.AddFixedWindowLimiter("login", o => { o.PermitLimit = 20; o.Window = TimeSpan.FromMinutes(1); });
+    options.AddFixedWindowLimiter("login", o => { o.PermitLimit = builder.Environment.IsEnvironment("Testing") ? 1000 : 20; o.Window = TimeSpan.FromMinutes(1); });
     options.AddFixedWindowLimiter("exportacion", o => { o.PermitLimit = 30; o.Window = TimeSpan.FromMinutes(1); });
     options.AddPolicy("ocr", context => RateLimitPartition.GetFixedWindowLimiter(
         context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonimo",

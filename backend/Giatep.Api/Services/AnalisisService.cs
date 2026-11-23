@@ -20,7 +20,26 @@ public sealed class AnalisisService(AccesoService acceso, GiatepDbContext db)
     }
     public async Task<object> Dashboard(DateOnly? desde, DateOnly? hasta, Guid? establecimientoId, string? estado = null, string? tipoCaso = null)
     {
-        var datos = await Datos(desde, hasta, establecimientoId, estado, tipoCaso); var medidas = datos.SelectMany(c => c.Medidas).ToArray(); var hoy = Consultas.Hoy();
+        var consulta = Consultas.Filtrar(acceso.Casos.AsNoTracking(), null, estado, tipoCaso, establecimientoId, desde, hasta);
+        var datos = await (
+            from caso in consulta
+            join centro in db.Establecimientos.AsNoTracking() on caso.EstablecimientoId equals (Guid?)centro.Id into centrosCaso
+            from centro in centrosCaso.DefaultIfEmpty()
+            select new {
+                caso.Fecha, caso.Tipo, caso.Estado, caso.CerradoEn, caso.EstablecimientoId,
+                Establecimiento = centro == null ? caso.Establecimiento : centro.Nombre
+            }).ToArrayAsync();
+
+        var hoy = Consultas.Hoy();
+        var resumenMedidas = await db.Medidas.AsNoTracking()
+            .Where(m => m.Activa && consulta.Any(c => c.Id == m.CasoId))
+            .GroupBy(_ => 1)
+            .Select(g => new {
+                Total = g.Count(),
+                Cumplidas = g.Count(m => m.Completada),
+                Vencidas = g.Count(m => !m.Completada && m.Plazo < hoy)
+            }).SingleOrDefaultAsync();
+        var totalMedidas = resumenMedidas?.Total ?? 0;
         var cerrados = datos.Where(c => c.Estado == EstadoCaso.Cerrado).ToArray();
         var dias = cerrados.Where(c => c.CerradoEn.HasValue).Select(c => Math.Max(0, (c.CerradoEn!.Value.Date - c.Fecha.ToDateTime(TimeOnly.MinValue)).TotalDays)).ToArray();
         var inicioCierre = desde.HasValue ? InicioDiaLocalUtc(desde.Value) : (DateTimeOffset?)null;
@@ -31,9 +50,9 @@ public sealed class AnalisisService(AccesoService acceso, GiatepDbContext db)
         if (finCierre.HasValue) consultaCierres = consultaCierres.Where(c => c.CerradoEn < finCierre.Value);
         var cierresPeriodo = await consultaCierres.CountAsync();
         var abiertos = datos.Length - cerrados.Length;
-        var cumplidas = medidas.Count(m => m.Completada);
-        var vencidas = medidas.Count(m => !m.Completada && m.Plazo < hoy);
-        var centros = datos.GroupBy(c => c.EstablecimientoId).OrderByDescending(g => g.Count()).Select(g => new { etiqueta = NombreCentro(g.Key, g.First().Establecimiento), valor = g.Count() }).ToArray();
+        var cumplidas = resumenMedidas?.Cumplidas ?? 0;
+        var vencidas = resumenMedidas?.Vencidas ?? 0;
+        var centros = datos.GroupBy(c => c.EstablecimientoId).OrderByDescending(g => g.Count()).Select(g => new { etiqueta = g.MinBy(c => c.Fecha)!.Establecimiento, valor = g.Count() }).ToArray();
         var mensual = datos.GroupBy(c => c.Fecha.ToString("yyyy-MM")).ToDictionary(g => g.Key, g => g.Count());
         var series = new List<object>();
         if (datos.Length > 0) {
@@ -49,8 +68,8 @@ public sealed class AnalisisService(AccesoService acceso, GiatepDbContext db)
                 new { nombre = "Casos cerrados", valor = datos.Length == 0 ? 0 : Math.Round(cerrados.Length * 100.0 / datos.Length, 1), unidad = "%", formula = "Casos del período actualmente cerrados / total de casos del período × 100", pregunta = "¿Qué proporción de los casos del período está actualmente cerrada?", cantidad = (int?)cerrados.Length, denominador = (int?)datos.Length, muestra = (int?)null },
                 new { nombre = "Cierres del período", valor = (double)cierresPeriodo, unidad = "casos", formula = "Casos con estado Cerrado y fecha de cierre dentro del período seleccionado", pregunta = "¿Cuántos casos se cerraron durante el período?", cantidad = (int?)cierresPeriodo, denominador = (int?)null, muestra = (int?)null },
                 new { nombre = "Tiempo de cierre", valor = dias.Length == 0 ? 0 : Math.Round(dias.Average(), 1), unidad = "días", formula = "Promedio de (fecha de cierre − fecha del evento), solo casos cerrados con fecha de cierre", pregunta = "¿Cuánto tarda la gestión completa?", cantidad = (int?)null, denominador = (int?)null, muestra = (int?)dias.Length },
-                new { nombre = "Medidas cumplidas", valor = medidas.Length == 0 ? 0 : Math.Round(cumplidas * 100.0 / medidas.Length, 1), unidad = "%", formula = "Medidas completadas / medidas activas asociadas a los casos filtrados × 100", pregunta = "¿Cuántas medidas están completadas?", cantidad = (int?)cumplidas, denominador = (int?)medidas.Length, muestra = (int?)null },
-                new { nombre = "Medidas vencidas", valor = medidas.Length == 0 ? 0 : Math.Round(vencidas * 100.0 / medidas.Length, 1), unidad = "%", formula = "Medidas activas pendientes con plazo anterior a hoy / medidas activas asociadas a los casos filtrados × 100", pregunta = "¿Cuántas medidas requieren atención por atraso?", cantidad = (int?)vencidas, denominador = (int?)medidas.Length, muestra = (int?)null }
+                new { nombre = "Medidas cumplidas", valor = totalMedidas == 0 ? 0 : Math.Round(cumplidas * 100.0 / totalMedidas, 1), unidad = "%", formula = "Medidas completadas / medidas activas asociadas a los casos filtrados × 100", pregunta = "¿Cuántas medidas están completadas?", cantidad = (int?)cumplidas, denominador = (int?)totalMedidas, muestra = (int?)null },
+                new { nombre = "Medidas vencidas", valor = totalMedidas == 0 ? 0 : Math.Round(vencidas * 100.0 / totalMedidas, 1), unidad = "%", formula = "Medidas activas pendientes con plazo anterior a hoy / medidas activas asociadas a los casos filtrados × 100", pregunta = "¿Cuántas medidas requieren atención por atraso?", cantidad = (int?)vencidas, denominador = (int?)totalMedidas, muestra = (int?)null }
             },
             meses = series,
             tipos = datos.GroupBy(c => c.Tipo).Select(g => new { etiqueta = g.Key == TipoCaso.Accidente ? "Accidentes" : "Enfermedades", valor = g.Count() }),

@@ -14,13 +14,19 @@ public static class GestionEndpoints
 {
     public static void MapGestion(this WebApplication app)
     {
-        app.MapGet("/api/v1/opciones", (GiatepDbContext db, AccesoService acceso) => Results.Ok(new {
-            empleadores = db.Empleadores.Where(e => !acceso.EsJefatura || db.Casos.Any(c => c.EmpleadorId == e.Id && c.EstablecimientoId == acceso.EstablecimientoId)).ToArray().OrderBy(e => e.Nombre).ToArray(),
-            establecimientos = db.Establecimientos.Where(e => e.Activo && (!acceso.EsJefatura || e.Id == acceso.EstablecimientoId)).ToArray().OrderBy(e => e.Nombre).ToArray(),
-            trabajadores = db.Trabajadores.Where(t => t.Activo && (!acceso.EsJefatura || t.EstablecimientoId == acceso.EstablecimientoId)).Select(t => new { t.Id, t.Nombre, t.Codigo, t.Cargo, t.EstablecimientoId, t.Run, t.Direccion, t.Comuna, t.Telefono, t.Sexo, t.FechaNacimiento, t.Nacionalidad, t.PuebloOriginario, t.OtroPueblo }).ToArray().OrderBy(t => t.Nombre).ToArray(),
-            responsables = db.Usuarios.Where(u => u.Activo && (u.Rol == "Prevencion" || u.Rol == "Jefatura") && (!acceso.EsJefatura || u.EstablecimientoId == acceso.EstablecimientoId || u.Rol == "Prevencion")).Select(u => new { u.Id, u.Nombre, u.Rol, u.EstablecimientoId }).ToArray(),
-            categorias = new[] { "Entorno", "Organización", "Ergonomía", "Equipamiento", "Procedimiento" }
-        })).RequireAuthorization().WithTags("Catálogos");
+        app.MapGet("/api/v1/opciones", (GiatepDbContext db, AccesoService acceso, bool soloEstablecimientos = false) =>
+        {
+            var establecimientos = db.Establecimientos.Where(e => e.Activo && (!acceso.EsJefatura || e.Id == acceso.EstablecimientoId)).ToArray().OrderBy(e => e.Nombre).ToArray();
+            if (soloEstablecimientos) return Results.Ok(new { establecimientos });
+
+            return Results.Ok(new {
+                empleadores = db.Empleadores.Where(e => !acceso.EsJefatura || db.Casos.Any(c => c.EmpleadorId == e.Id && c.EstablecimientoId == acceso.EstablecimientoId)).ToArray().OrderBy(e => e.Nombre).ToArray(),
+                establecimientos,
+                trabajadores = db.Trabajadores.Where(t => t.Activo && (!acceso.EsJefatura || t.EstablecimientoId == acceso.EstablecimientoId)).Select(t => new { t.Id, t.Nombre, t.Codigo, t.Cargo, t.EstablecimientoId, t.Run, t.Direccion, t.Comuna, t.Telefono, t.Sexo, t.FechaNacimiento, t.Nacionalidad, t.PuebloOriginario, t.OtroPueblo }).ToArray().OrderBy(t => t.Nombre).ToArray(),
+                responsables = db.Usuarios.Where(u => u.Activo && (u.Rol == "Prevencion" || u.Rol == "Jefatura") && (!acceso.EsJefatura || u.EstablecimientoId == acceso.EstablecimientoId || u.Rol == "Prevencion")).Select(u => new { u.Id, u.Nombre, u.Rol, u.EstablecimientoId }).ToArray(),
+                categorias = new[] { "Entorno", "Organización", "Ergonomía", "Equipamiento", "Procedimiento" }
+            });
+        }).RequireAuthorization().WithTags("Catálogos");
         var admin = app.MapGroup("/api/v1/admin").RequireAuthorization("Administrador").WithTags("Administración");
         admin.MapGet("/establecimientos", (GiatepDbContext db) => db.Establecimientos.OrderBy(e => e.Nombre).ToArray());
         admin.MapPost("/establecimientos", (CentroDTO dto, GiatepDbContext db) => GuardarCentro(null, dto, db));
